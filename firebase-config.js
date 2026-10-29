@@ -9,3 +9,4 @@ const firebaseConfig = {
   appId: "1:1049047827085:web:1dd32bbba649f14acc18c4",
   measurementId: "G-VPCNKR0CHN"
 };
+window.ADMIN_EMAILS = ["ariful.amar@gmail.com"];
