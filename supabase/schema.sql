@@ -103,10 +103,8 @@ drop policy if exists "Teachers can read own profile" on public.profiles;
 create policy "Teachers can read own profile" on public.profiles
 for select to authenticated using (id = (select auth.uid()));
 
-drop policy if exists "Teachers can update own profile name" on public.profiles;
-create policy "Teachers can update own profile name" on public.profiles
-for update to authenticated using (id = (select auth.uid())) with check (id = (select auth.uid()));
-
+-- No client-side profile UPDATE policy is created: users must not be able to promote
+-- themselves from teacher to admin by editing their own role.
 drop policy if exists "Teachers manage own exams" on public.exams;
 create policy "Teachers manage own exams" on public.exams
 for all to authenticated using (owner_id = (select auth.uid())) with check (owner_id = (select auth.uid()));
