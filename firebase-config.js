@@ -6,4 +6,4 @@ window.FIREBASE_CONFIG = {
   appId: "1:1049047827085:web:1dd32bbba649f14acc18c4"
 };
 // Email Google yang menjadi admin (harus sama dengan di firestore.rules)
-window.ADMIN_EMAILS = ["admin@gmail.com"];
+window.ADMIN_EMAILS = ["ariful.amar@gmail.com"];
