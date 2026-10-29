@@ -87,8 +87,13 @@ function init(){
 }
 function toggleLogin(){
  const u=S.auth.currentUser;
- if(u&&!u.isAnonymous)S.auth.signOut();
- else S.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert('Login gagal: '+e.message));
+ if(u&&!u.isAnonymous){
+  S.auth.signOut().catch(e=>alert('Gagal keluar: '+e.message));
+  return;
+ }
+ // Redirect lebih stabil daripada popup pada GitHub Pages dan menghindari auth/cancelled-popup-request.
+ S.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())
+  .catch(e=>alert('Login gagal: '+e.message));
 }
 function start(){
  unsub.forEach(f=>f());unsub=[];S.forms=[];S.keys={};S.resp=[];S.D=null;S.tab='';
