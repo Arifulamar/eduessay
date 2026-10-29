@@ -76,6 +76,8 @@ function init(){
  try{
   firebase.initializeApp(FIREBASE_CONFIG);
   S.auth=firebase.auth();S.db=firebase.firestore();
+  // Selesaikan hasil login Google redirect sebelum fallback login anonim dijalankan.
+  try{await S.auth.getRedirectResult()}catch(e){console.error('Hasil redirect Google:',e)}
   S.auth.onAuthStateChanged(async u=>{
    if(!u){try{await S.auth.signInAnonymously()}catch(e){app.innerHTML='<div class="card top"><h1>Gagal masuk</h1><p>'+esc(e.message)+'</p><p class="mut">Pastikan Anonymous Auth aktif di Firebase Console.</p></div>'}return}
    S.uid=u.uid;
