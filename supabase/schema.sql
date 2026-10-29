@@ -1,7 +1,5 @@
 -- EduEssay Supabase schema
 -- Run this entire file in Supabase SQL Editor for the EduEssay project.
-create extension if not exists pgcrypto;
-
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
@@ -18,7 +16,7 @@ create table if not exists public.exams (
   duration_minutes integer not null default 60 check (duration_minutes between 1 and 1440),
   max_score integer not null default 100 check (max_score between 1 and 1000),
   is_published boolean not null default false,
-  public_token text not null unique default encode(gen_random_bytes(18), 'hex'),
+  public_token text not null unique default replace(gen_random_uuid()::text, '-', ''),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
