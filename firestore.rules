@@ -4,7 +4,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email in ['admin@gmail.com']; // samakan dengan ADMIN_EMAILS
+        && request.auth.token.email in ['ariful.amar@gmail.com']; // samakan dengan ADMIN_EMAILS
     }
     match /forms/{id} {
       allow read: if request.auth != null;
