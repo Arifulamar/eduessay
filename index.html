@@ -54,7 +54,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <div class="bar"><div class="in"><strong style="cursor:pointer" onclick="go('')">📝 Ujian Online</strong><span class="sp"></span><button id="lg" class="btn g" style="padding:4px 12px" onclick="toggleLogin()">Masuk admin</button></div></div>
 <div class="w" id="app"><div class="card">Memuat…</div></div>
 <script>
-const T={short:'Jawaban singkat',para:'Paragraf',radio:'Pilihan ganda',check:'Kotak centang',drop:'Dropdown'};
+const T={para:'Esai'};
 const S={db:null,admin:false,uid:'anon',forms:[],keys:{},resp:[],view:'home',id:null,D:null,tab:'edit',err:'',tick:null};
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -142,7 +142,7 @@ function editForm(id){
  const f=F(id);S.D=JSON.parse(JSON.stringify(f));S.D.map=JSON.parse(JSON.stringify(S.keys[id]||{}));S.tab='edit';renderEdit();
 }
 function addQ(){
- const q={id:uid(),type:'radio',text:'',options:['Opsi 1'],required:true,points:1};
+ const q={id:uid(),type:'para',text:'',options:[],required:true,points:10};
  S.D.questions.push(q);renderEdit();
 }
 function setD(k,v){S.D[k]=v}
@@ -161,7 +161,7 @@ function renderEdit(){
  const D=S.D;let h='<div class="card top"><input style="font-size:24px" value="'+esc(D.title)+'" oninput="setD(\'title\',this.value)" placeholder="Judul ujian"><input value="'+esc(D.desc)+'" oninput="setD(\'desc\',this.value)" placeholder="Deskripsi / petunjuk pengerjaan"><div class="row" style="margin-top:12px"><label class="mut">Durasi (menit, 0 = bebas)</label><input type="number" min="0" style="width:90px" value="'+D.duration+'" oninput="setD(\'duration\',+this.value||0)"><label class="o"><input type="checkbox" '+(D.open?'checked':'')+' onchange="setD(\'open\',this.checked)">Dibuka untuk peserta</label></div></div>';
  D.questions.forEach((q,i)=>{
   const key=D.map[q.id];
-  h+='<div class="card"><div class="row"><input style="flex:2;min-width:180px" value="'+esc(q.text)+'" placeholder="Pertanyaan '+(i+1)+'" oninput="setQ('+i+',\'text\',this.value)"><select style="flex:1;min-width:140px" onchange="setType('+i+',this.value)">'+Object.entries(T).map(([k,v])=>'<option value="'+k+'"'+(q.type===k?' selected':'')+'>'+v+'</option>').join('')+'</select></div>';
+  h+='<div class="card"><div class="row"><textarea rows="2" style="flex:1;min-width:180px" oninput="setQ('+i+',\'text\',this.value)" placeholder="Pertanyaan esai '+(i+1)+'">'+esc(q.text)+'</textarea></div>';
   if(['radio','check','drop'].includes(q.type)){
    h+='<div style="margin-top:8px">';
    q.options.forEach((o,j)=>{
@@ -202,7 +202,7 @@ function renderTake(){
   const a=S.ans[q.id];
   h+='<div class="card" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+' <span class="mut">('+q.points+' poin)</span></h2>';
   if(q.type==='short')h+='<input value="'+esc(a||'')+'" placeholder="Jawaban Anda" oninput="sa(\''+q.id+'\',this.value)">';
-  else if(q.type==='para')h+='<textarea rows="4" placeholder="Jawaban Anda" oninput="sa(\''+q.id+'\',this.value)">'+esc(a||'')+'</textarea>';
+  else if(q.type==='para')h+='<textarea rows="8" placeholder="Tulis jawaban esai Anda di sini" oninput="sa(\''+q.id+'\',this.value)">'+esc(a||'')+'</textarea>';
   else if(q.type==='drop')h+='<select onchange="sa(\''+q.id+'\',this.value===\'\'?undefined:+this.value)"><option value="">Pilih…</option>'+q.options.map((o,j)=>'<option value="'+j+'"'+(a===j?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
   else q.options.forEach((o,j)=>{
    const c=q.type==='check'?(a||[]).includes(j):a===j;
@@ -271,7 +271,7 @@ function renderResp(){
  const f=F(S.id);if(!f){go('');return}
  const rs=S.resp.filter(r=>r.formId===f.id).sort((a,b)=>b.submittedAt-a.submittedAt);
  let h='<div class="row" style="margin-bottom:12px"><button class="btn g" onclick="S.tab=\'\';S.id=null;render()">← Kembali</button><span class="sp"></span><button class="btn" onclick="csv()">Unduh CSV</button></div>';
- h+='<div class="card top"><h1>'+esc(f.title)+'</h1><div class="mut">'+rs.length+' tanggapan'+(rs.length?' · rata-rata nilai '+avg(f,rs)+'%':'')+'</div></div>';
+ h+='<div class="card top"><h1>'+esc(f.title)+'</h1><div class="mut">'+rs.length+' tanggapan'+''+'</div></div>';
  // ringkasan
  (f.questions||[]).forEach((q,i)=>{
   if(!['radio','check','drop'].includes(q.type))return;
@@ -279,8 +279,8 @@ function renderResp(){
   const mx=Math.max(1,...cnt);
   h+='<div class="card"><h2>'+(i+1)+'. '+esc(q.text)+'</h2>'+q.options.map((o,j)=>'<div style="margin:4px 0">'+esc(o)+' <span class="mut">('+cnt[j]+')</span><div class="bb" style="width:'+(cnt[j]/mx*100)+'%"></div></div>').join('')+'</div>';
  });
- h+='<div class="card tw"><h2>Individu</h2><table><tr><th>Nama</th><th>NIS/Email</th><th>Waktu</th><th>Skor</th></tr>';
- rs.forEach(r=>{const g=grade(f,r);h+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+new Date(r.submittedAt).toLocaleString('id-ID')+'</td><td><b>'+g.sc+'/'+g.mx+'</b></td></tr>'});
+ h+='<div class="card tw"><h2>Individu</h2><table><tr><th>Nama</th><th>NIS/Email</th><th>Waktu</th><th>Nilai</th></tr>';
+ rs.forEach(r=>{const g=grade(f,r);h+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+new Date(r.submittedAt).toLocaleString('id-ID')+'</td><td>'+(g.mx?'<b>'+g.sc+'/'+g.mx+'</b>':'—')+'</td></tr>'});
  h+='</table></div>';
  rs.forEach(r=>{h+='<details class="card"><summary>'+esc(r.name)+' — jawaban</summary>'+(f.questions||[]).map((q,i)=>'<p><b>'+(i+1)+'. '+esc(q.text)+'</b><br>'+esc(fmt(q,r.answers[q.id]))+'</p>').join('')+'<button class="btn r" onclick="delResp(\''+r.id+'\')">Hapus tanggapan</button></details>'});
  app.innerHTML=h;
