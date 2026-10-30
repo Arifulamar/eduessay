@@ -118,7 +118,7 @@ function renderApprovals(){
  app.innerHTML=h;
 }
 function renderForms(){
- let h=nav()+'<section class="card hero"><div class="row"><div class="grow"><h1>Kelola Ujian</h1><p class="mut">Buat ujian, atur soal dan kunci jawaban, lalu buka untuk siswa.</p></div><button class="btn" onclick="newForm()">＋ Buat Ujian</button></div></section>';
+ let h=nav()+'<section class="card"><h2>Profil Guru</h2><div class="row"><div class="grow"><label class="mut">Nama guru</label><input id="profileName" value="'+esc(state.profile?.name||state.user.displayName||'')+'"></div><div class="grow"><label class="mut">Mata pelajaran</label><input id="profileSubject" value="'+esc(state.profile?.subject||'')+'" placeholder="Contoh: Matematika"></div></div><div class="row"><div class="grow"><label class="mut">Sekolah</label><input id="profileSchool" value="'+esc(state.profile?.school||'')+'" placeholder="Nama sekolah"></div><button class="btn secondary" onclick="saveProfile()">Simpan Profil</button></div></section><section class="card hero"><div class="row"><div class="grow"><h1>Kelola Ujian</h1><p class="mut">Buat ujian, atur soal dan kunci jawaban, lalu buka untuk siswa.</p></div><button class="btn" onclick="newForm()">＋ Buat Ujian</button></div></section>';
  if(!state.forms.length)h+='<div class="card">Belum ada ujian.</div>';
  state.forms.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(f=>{
   const n=state.responses.filter(r=>r.formId===f.id).length;
@@ -127,6 +127,7 @@ function renderForms(){
  app.innerHTML=h;
 }
 function copyStudentLink(id){const base=location.origin+location.pathname.replace(/guru\/?$/,'');const url=base+'#f-'+id;navigator.clipboard?.writeText(url).then(()=>alert('Tautan ujian disalin: '+url)).catch(()=>prompt('Salin tautan ujian:',url))}
+async function saveProfile(){try{const data={name:$('#profileName').value.trim(),subject:$('#profileSubject').value.trim(),school:$('#profileSchool').value.trim(),updatedAt:Date.now()};await state.db.collection('users').doc(state.user.uid).update(data);state.profile={...state.profile,...data};alert('Profil berhasil disimpan.')}catch(e){alert('Gagal menyimpan profil: '+e.message)}}
 function newForm(){state.editing={id:Math.random().toString(36).slice(2,10),title:'Ujian baru',desc:'',duration:30,open:false,createdAt:Date.now(),ownerUid:state.user.uid,ownerName:state.profile?.name||state.user.displayName||state.user.email,subject:state.profile?.subject||'',className:'',questions:[],map:{}};addQuestion()}
 function editForm(id){const f=state.forms.find(x=>x.id===id);state.editing=JSON.parse(JSON.stringify(f));state.editing.map=JSON.parse(JSON.stringify(state.keys[id]||{}));renderEditor()}
 function addQuestion(){state.editing.questions.push({id:Math.random().toString(36).slice(2,10),type:'para',text:'',options:[],required:true,points:10});renderEditor()}
@@ -142,7 +143,7 @@ function renderEditor(){
  app.innerHTML=nav()+h;
 }
 function collectEditor(){
- const d=state.editing;d.title=$('#ftitle').value.trim();d.desc=$('#fdesc').value;d.duration=+$('#fduration').value||0;d.open=$('#fopen').checked;
+ const d=state.editing;d.title=$('#ftitle').value.trim();d.subject=$('#fsubject').value.trim();d.className=$('#fclass').value.trim();d.desc=$('#fdesc').value;d.duration=+$('#fduration').value||0;d.open=$('#fopen').checked;
  d.questions.forEach((q,i)=>{q.text=$('#qt-'+i).value;q.type=$('#qtype-'+i).value;q.points=+$('#qp-'+i).value||0;q.required=$('#qr-'+i).checked;if(['radio','check','drop'].includes(q.type))q.options=q.options.map((_,j)=>$('#qo-'+i+'-'+j)?.value??q.options[j]);if(q.type==='short')d.map[q.id]=$('#qkey-'+i).value});
 }
 function changeType(i,t){collectEditor();const q=state.editing.questions[i];q.type=t;if(!['radio','check','drop'].includes(t)){q.options=[];delete state.editing.map[q.id]}else if(!q.options.length)q.options=['Opsi 1'];renderEditor()}
