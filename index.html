@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<title>Ujian Online</title>
+<title>Eduessay — Ujian Online</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#673ab7">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,290 +16,110 @@
 <style>
 :root{--bg:#f0ebf8;--card:#fff;--tx:#202124;--mut:#5f6368;--pri:#673ab7;--bd:#dadce0;--ok:#188038;--bad:#d93025;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1a29;--card:#2b2838;--tx:#e8eaed;--mut:#9aa0a6;--pri:#b39ddb;--bd:#4a4658;--ok:#81c995;--bad:#f28b82}}
-:root[data-theme="dark"]{--bg:#1e1a29;--card:#2b2838;--tx:#e8eaed;--mut:#9aa0a6;--pri:#b39ddb;--bd:#4a4658;--ok:#81c995;--bad:#f28b82}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.w{max-width:760px;margin:0 auto;padding:16px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px 20px;margin-bottom:12px}
-.top{border-top:10px solid var(--pri)}
-h1{font-size:26px;margin:0 0 6px;font-weight:500}h2{font-size:18px;margin:0 0 8px;font-weight:500}
-.mut{color:var(--mut);font-size:13px}
-input,textarea,select{width:100%;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1px solid var(--bd);padding:8px 2px;outline:0}
-input:focus,textarea:focus,select:focus{border-bottom:2px solid var(--pri)}
-select{background:var(--card)}
-input[type=radio],input[type=checkbox]{width:auto;margin-right:10px;accent-color:var(--pri)}
-label.o{display:flex;align-items:center;padding:6px 0;cursor:pointer}
-.btn{background:var(--pri);color:#fff;border:0;border-radius:6px;padding:9px 18px;font:inherit;cursor:pointer}
-:root[data-theme="dark"] .btn{color:#1e1a29}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#1e1a29}}
-.btn.g{background:transparent;color:var(--pri);border:1px solid var(--bd)}
-.btn.r{background:transparent;color:var(--bad);border:1px solid var(--bd)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{flex:1}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--bd);padding:10px 16px}
-.bar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:6}
-.tag{font-size:12px;background:var(--bg);border-radius:20px;padding:2px 10px;color:var(--mut)}
-.err{color:var(--bad);font-size:13px;margin-top:6px}
-.ok{color:var(--ok)}
-.tw{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}
-.tm{font-weight:600;color:var(--pri)}
-.opt{display:flex;align-items:center;gap:6px}
-.opt input[type=text]{flex:1}
-.cor{background:rgba(24,128,56,.12);border-radius:6px}
-.bb{height:8px;background:var(--pri);border-radius:4px;min-width:2px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:820px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;margin-bottom:14px}.top{border-top:8px solid var(--pri)}
+h1{font-size:25px;margin:0 0 6px;font-weight:650}h2{font-size:18px;margin:0 0 8px;font-weight:600}.mut{color:var(--mut);font-size:13px}
+input,textarea,select{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--bd);border-radius:8px;padding:10px;margin:5px 0;outline:0}
+input:focus,textarea:focus,select:focus{border-color:var(--pri)}textarea{resize:vertical}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.btn.g{background:transparent;color:var(--pri);border:1px solid var(--bd)}.btn.r{background:transparent;color:var(--bad);border:1px solid var(--bd)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{flex:1}.bar{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--bd);padding:12px 16px}.bar .in{max-width:820px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.tag{font-size:12px;background:var(--bg);border-radius:20px;padding:3px 10px;color:var(--mut)}.err{color:var(--bad);font-size:13px;margin-top:8px}.ok{color:var(--ok)}.tm{font-weight:700;color:var(--pri)}
+.canvas-wrap{border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:#fff;margin-top:8px}.draw-tools{display:flex;gap:6px;flex-wrap:wrap;padding:8px;background:var(--bg);border-bottom:1px solid var(--bd)}.draw-tools .btn{padding:6px 10px;font-size:13px}.draw-tools .active{outline:2px solid var(--pri);outline-offset:1px}
+.answer-canvas{display:block;width:100%;height:auto;aspect-ratio:5/2;touch-action:none;cursor:crosshair;background:#fff}.hint{font-size:12px;color:var(--mut);margin-top:6px}.question{scroll-margin-top:70px}
+@media(max-width:520px){.w{padding:10px}.card{padding:15px}.bar{padding:10px}.answer-canvas{aspect-ratio:4/3}}
 </style>
 </head>
 <body>
-<div class="bar"><div class="in"><strong style="cursor:pointer" onclick="go('')">📝 Ujian Online</strong><span class="sp"></span><button id="lg" class="btn g" style="padding:4px 12px" onclick="toggleLogin()">Masuk admin</button></div></div>
-<div class="w" id="app"><div class="card">Memuat…</div></div>
+<div class="bar"><div class="in"><strong style="font-size:18px">📝 Eduessay</strong><span class="sp"></span><span class="tag">Mode Siswa</span></div></div>
+<div class="w" id="app"><div class="card">Memuat ujian…</div></div>
 <script>
-const T={para:'Esai'};
-const S={db:null,admin:false,uid:'anon',forms:[],keys:{},resp:[],view:'home',id:null,D:null,tab:'edit',err:'',tick:null};
+const S={db:null,auth:null,uid:null,forms:[],view:'home',id:null,ans:{},nm:'',em:'',tick:null,started:false,strokes:{},tools:{}};
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const uid=()=>Math.random().toString(36).slice(2,9);
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const F=id=>S.forms.find(f=>f.id===id);
-
 function go(h){location.hash=h;route()}
-function route(){
- clearInterval(S.tick);S.err='';
- const h=location.hash.slice(1);
- if(h.startsWith('f-')){S.view='take';S.id=h.slice(2)}else S.view='home';
- render();
-}
+function route(){clearInterval(S.tick);const h=location.hash.slice(1);if(h.startsWith('f-')){S.view='take';S.id=h.slice(2)}else{S.view='home';S.id=null;S.started=false}render()}
 window.addEventListener('hashchange',route);
-
-let unsub=[];
 function init(){
  try{
-  firebase.initializeApp(FIREBASE_CONFIG);
-  S.auth=firebase.auth();S.db=firebase.firestore();
-  // Selesaikan hasil login Google redirect sebelum fallback login anonim dijalankan.
-  try{await S.auth.getRedirectResult()}catch(e){console.error('Hasil redirect Google:',e)}
-  S.auth.onAuthStateChanged(async u=>{
-   if(!u){try{await S.auth.signInAnonymously()}catch(e){app.innerHTML='<div class="card top"><h1>Gagal masuk</h1><p>'+esc(e.message)+'</p><p class="mut">Pastikan Anonymous Auth aktif di Firebase Console.</p></div>'}return}
-   S.uid=u.uid;
-   S.admin=!u.isAnonymous&&!!u.email&&ADMIN_EMAILS.map(x=>x.toLowerCase()).includes(u.email.toLowerCase());
-   $('#lg').textContent=S.admin?'Keluar ('+u.email+')':'Masuk admin';
-   start();
+  firebase.initializeApp(FIREBASE_CONFIG);S.auth=firebase.auth();S.db=firebase.firestore();
+  S.auth.onAuthStateChanged(async user=>{
+   if(!user){try{await S.auth.signInAnonymously()}catch(e){app.innerHTML='<div class="card top"><h1>Tidak dapat terhubung</h1><p>'+esc(e.message)+'</p><p class="mut">Pastikan Anonymous Authentication aktif di Firebase.</p></div>'}return}
+   S.uid=user.uid;loadForms();
   });
- }catch(e){app.innerHTML='<div class="card">Gagal memuat: '+esc(e.message||e)+'</div>'}
+ }catch(e){app.innerHTML='<div class="card top">Gagal memuat aplikasi: '+esc(e.message||e)+'</div>'}
 }
-function toggleLogin(){
- const u=S.auth.currentUser;
- if(u&&!u.isAnonymous){
-  S.auth.signOut().catch(e=>alert('Gagal keluar: '+e.message));
-  return;
- }
- // Redirect lebih stabil daripada popup pada GitHub Pages dan menghindari auth/cancelled-popup-request.
- S.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())
-  .catch(e=>alert('Login gagal: '+e.message));
+function loadForms(){
+ S.db.collection('forms').onSnapshot(s=>{S.forms=s.docs.map(d=>({id:d.id,...d.data()}));if(!S.started)render()},e=>{app.innerHTML='<div class="card top"><h2>Gagal memuat ujian</h2><p>'+esc(e.message)+'</p></div>'});
 }
-function start(){
- unsub.forEach(f=>f());unsub=[];S.forms=[];S.keys={};S.resp=[];S.D=null;S.tab='';
- const db=S.db,er=e=>{S.err=e.message;if(S.view==='home')render()};
- unsub.push(db.collection('forms').onSnapshot(s=>{S.forms=s.docs.map(d=>({id:d.id,...d.data()}));if(!S.D&&(S.view==='home'||(S.view==='take'&&!S.started)))render()},er));
- if(S.admin){
-  unsub.push(db.collection('keys').onSnapshot(s=>{S.keys={};s.docs.forEach(d=>S.keys[d.id]=d.data().map||{});if(S.view==='home'&&S.tab==='resp')render()},er));
-  unsub.push(db.collection('responses').onSnapshot(s=>{S.resp=[];s.docs.forEach(d=>{const x=d.data();Object.keys(x).forEach(k=>{if(k.startsWith('f_')&&x[k])S.resp.push({...x[k],id:d.id+'|'+k,docId:d.id,key:k,formId:k.slice(2)})})});if(S.view==='home'&&S.tab==='resp')render()},er));
- }
- route();
-}
-
-function render(){
- if(S.view==='take')return renderTake();
- if(S.D&&S.tab==='edit')return renderEdit();
- if(S.id&&S.tab==='resp')return renderResp();
- renderHome();
-}
-
-/* ---------- BERANDA ---------- */
+function render(){if(S.view==='take')renderTake();else renderHome()}
 function renderHome(){
- S.D=null;S.tab='';S.id=null;
- let h='';
- if(S.admin)h+='<div class="row" style="margin-bottom:12px"><button class="btn" onclick="newForm()">＋ Ujian baru</button></div>';
- if(!S.forms.length)h+='<div class="card top"><h1>Belum ada ujian</h1><p class="mut">'+(S.admin?'Buat ujian pertama Anda dengan tombol di atas.':'Belum ada ujian yang tersedia.')+'</p></div>';
- S.forms.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(f=>{
-  if(!S.admin&&!f.open)return;
-  const done=ls.get('done_'+f.id);
-  h+='<div class="card"><h2>'+esc(f.title||'Tanpa judul')+'</h2><div class="mut">'+(f.questions||[]).length+' soal · '+(f.duration?f.duration+' menit':'tanpa batas waktu')+' <span class="tag">'+(f.open?'Dibuka':'Ditutup')+'</span></div><div class="row" style="margin-top:12px">';
-  if(done&&!S.admin)h+='<span class="ok">✓ Sudah dikerjakan</span>';
-  else if(f.open||S.admin)h+='<button class="btn" onclick="go(\'f-'+f.id+'\')">'+(S.admin?'Pratinjau':'Mulai ujian')+'</button>';
-  if(S.admin)h+='<button class="btn g" onclick="editForm(\''+f.id+'\')">Ubah</button><button class="btn g" onclick="showResp(\''+f.id+'\')">Tanggapan</button><button class="btn g" onclick="copyLink(\''+f.id+'\')">Salin tautan</button><button class="btn r" onclick="delForm(\''+f.id+'\')">Hapus</button>';
-  h+='</div></div>';
- });
- if(S.err)h+='<div class="err">'+esc(S.err)+'</div>';
+ const forms=S.forms.filter(f=>f.open).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));let h='<div class="card top"><h1>Ujian Esai Online</h1><p class="mut">Pilih ujian yang tersedia, isi identitas, lalu jawab dengan mengetik atau menulis langsung pada kanvas.</p></div>';
+ if(!forms.length)h+='<div class="card"><h2>Belum ada ujian yang dibuka</h2><p class="mut">Silakan periksa kembali nanti atau hubungi guru/pengawas.</p></div>';
+ forms.forEach(f=>{const done=ls.get('done_'+f.id);h+='<div class="card"><h2>'+esc(f.title||'Ujian tanpa judul')+'</h2><p class="mut">'+(f.questions||[]).length+' soal · '+(f.duration?f.duration+' menit':'tanpa batas waktu')+'</p>'+(f.desc?'<p>'+esc(f.desc)+'</p>':'')+'<div class="row">'+(done?'<span class="ok">✓ Sudah dikirim dari perangkat ini</span>':'<button class="btn" onclick="go(\'f-'+f.id+'\')">Mulai ujian</button>')+'</div></div>'});
  app.innerHTML=h;
 }
-async function copyLink(id){
- const u=(location.href.split('#')[0])+'#f-'+id;
- try{await navigator.clipboard.writeText(u);alert('Tautan disalin:\n'+u)}catch(e){prompt('Salin tautan:',u)}
+function draftKey(){return 'draft_'+S.id}
+function readDraft(){let d={};try{d=JSON.parse(ls.get(draftKey())||'{}')}catch(e){}S.ans=d.a||{};S.nm=d.n||'';S.em=d.e||''}
+function saveDraft(){ls.set(draftKey(),JSON.stringify({a:S.ans,n:S.nm,e:S.em}))}
+function answerEmpty(q){
+ const a=S.ans[q.id];if(a===undefined||a===null||a==='')return true;
+ if(q.type==='para'&&typeof a==='object')return !(String(a.text||'').trim()||a.drawing);
+ if(Array.isArray(a))return !a.length;return false;
 }
-async function delForm(id){
- if(!confirm('Hapus ujian ini beserta kunci jawabannya?'))return;
- try{await S.db.doc('forms/'+id).delete();await S.db.doc('keys/'+id).delete()}catch(e){alert(e.message)}
-}
-
-/* ---------- EDITOR (ADMIN) ---------- */
-function blank(){return{id:uid(),title:'Ujian tanpa judul',desc:'',duration:30,open:false,questions:[],createdAt:Date.now(),map:{}}}
-function newForm(){S.D=blank();S.tab='edit';addQ();}
-function editForm(id){
- const f=F(id);S.D=JSON.parse(JSON.stringify(f));S.D.map=JSON.parse(JSON.stringify(S.keys[id]||{}));S.tab='edit';renderEdit();
-}
-function addQ(){
- const q={id:uid(),type:'para',text:'',options:[],required:true,points:10};
- S.D.questions.push(q);renderEdit();
-}
-function setD(k,v){S.D[k]=v}
-function setQ(i,k,v){S.D.questions[i][k]=v}
-function setType(i,v){const q=S.D.questions[i];q.type=v;delete S.D.map[q.id];if(!['radio','check','drop'].includes(v))q.options=[];else if(!q.options.length)q.options=['Opsi 1'];renderEdit()}
-function addOpt(i){const q=S.D.questions[i];q.options.push('Opsi '+(q.options.length+1));renderEdit()}
-function delOpt(i,j){const q=S.D.questions[i];q.options.splice(j,1);delete S.D.map[q.id];renderEdit()}
-function delQ(i){delete S.D.map[S.D.questions[i].id];S.D.questions.splice(i,1);renderEdit()}
-function mvQ(i,d){const a=S.D.questions,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];renderEdit()}
-function setKey(i,j,on){
- const q=S.D.questions[i],m=S.D.map;
- if(q.type==='check'){const a=new Set(m[q.id]||[]);on?a.add(j):a.delete(j);m[q.id]=[...a]}else m[q.id]=j;
- renderEdit();
-}
-function renderEdit(){
- const D=S.D;let h='<div class="card top"><input style="font-size:24px" value="'+esc(D.title)+'" oninput="setD(\'title\',this.value)" placeholder="Judul ujian"><input value="'+esc(D.desc)+'" oninput="setD(\'desc\',this.value)" placeholder="Deskripsi / petunjuk pengerjaan"><div class="row" style="margin-top:12px"><label class="mut">Durasi (menit, 0 = bebas)</label><input type="number" min="0" style="width:90px" value="'+D.duration+'" oninput="setD(\'duration\',+this.value||0)"><label class="o"><input type="checkbox" '+(D.open?'checked':'')+' onchange="setD(\'open\',this.checked)">Dibuka untuk peserta</label></div></div>';
- D.questions.forEach((q,i)=>{
-  const key=D.map[q.id];
-  h+='<div class="card"><div class="row"><textarea rows="2" style="flex:1;min-width:180px" oninput="setQ('+i+',\'text\',this.value)" placeholder="Pertanyaan esai '+(i+1)+'">'+esc(q.text)+'</textarea></div>';
-  if(['radio','check','drop'].includes(q.type)){
-   h+='<div style="margin-top:8px">';
-   q.options.forEach((o,j)=>{
-    const c=q.type==='check'?(key||[]).includes(j):key===j;
-    h+='<div class="opt'+(c?' cor':'')+'"><input type="'+(q.type==='check'?'checkbox':'radio')+'" name="k'+i+'" '+(c?'checked':'')+' title="Tandai sebagai jawaban benar" onchange="setKey('+i+','+j+',this.checked)"><input type="text" value="'+esc(o)+'" oninput="S.D.questions['+i+'].options['+j+']=this.value"><button class="btn r" onclick="delOpt('+i+','+j+')">✕</button></div>';
-   });
-   h+='<button class="btn g" style="margin-top:6px" onclick="addOpt('+i+')">＋ Opsi</button><div class="mut" style="margin-top:6px">Centang/pilih opsi untuk menandai kunci jawaban.</div></div>';
-  }else if(q.type==='short'){
-   h+='<input style="margin-top:8px" value="'+esc(key||'')+'" placeholder="Kunci jawaban (pisahkan dengan koma jika ada beberapa)" oninput="S.D.map[\''+q.id+'\']=this.value">';
-  }else h+='<div class="mut" style="margin-top:8px">Dinilai manual (tidak ada kunci otomatis).</div>';
-  h+='<div class="row" style="margin-top:12px"><label class="o"><input type="checkbox" '+(q.required?'checked':'')+' onchange="setQ('+i+',\'required\',this.checked)">Wajib</label><label class="mut">Poin</label><input type="number" min="0" style="width:70px" value="'+q.points+'" oninput="setQ('+i+',\'points\',+this.value||0)"><span class="sp"></span><button class="btn g" onclick="mvQ('+i+',-1)">↑</button><button class="btn g" onclick="mvQ('+i+',1)">↓</button><button class="btn r" onclick="delQ('+i+')">Hapus</button></div></div>';
- });
- h+='<div class="row"><button class="btn g" onclick="addQ()">＋ Tambah soal</button><span class="sp"></span><button class="btn g" onclick="go(\'\');S.D=null;render()">Batal</button><button class="btn" onclick="saveForm()">Simpan</button></div><div class="err" id="se"></div>';
- const y=window.scrollY;app.innerHTML=h;window.scrollTo(0,y);
-}
-async function saveForm(){
- const D=S.D;
- try{
-  const{map,...f}=D;
-  await S.db.doc('forms/'+D.id).set(f);
-  await S.db.doc('keys/'+D.id).set({map});
-  S.D=null;S.tab='';render();
- }catch(e){$('#se').textContent='Gagal menyimpan: '+(e.message||e)}
-}
-
-/* ---------- PESERTA: MENGERJAKAN ---------- */
 function renderTake(){
- const f=F(S.id);
- if(!f){app.innerHTML='<div class="card top"><h1>Ujian tidak ditemukan</h1><button class="btn" onclick="go(\'\')">Kembali</button></div>';return}
- if(!f.open&&!S.admin){app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p>Ujian ini sedang ditutup.</p></div>';return}
- if(ls.get('done_'+f.id)&&!S.admin){app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban Anda sudah terkirim. Terima kasih.</p></div>';return}
- S.started=true;
- let sv={};try{sv=JSON.parse(ls.get('draft_'+f.id)||'{}')}catch(e){}
- S.ans=sv.a||{};S.nm=sv.n||'';S.em=sv.e||'';
- let h='<div class="card top"><h1>'+esc(f.title)+'</h1><div>'+esc(f.desc)+'</div>'+(f.duration?'<div class="row" style="margin-top:8px">Sisa waktu: <span class="tm" id="tm">--:--</span></div>':'')+'<div class="mut" style="margin-top:8px">* Wajib diisi</div></div>';
- h+='<div class="card"><h2>Identitas <span style="color:var(--bad)">*</span></h2><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="sv()"><input id="em" placeholder="NIS / Email" value="'+esc(S.em)+'" oninput="sv()"></div>';
- (f.questions||[]).forEach((q,i)=>{
-  const a=S.ans[q.id];
-  h+='<div class="card" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+' <span class="mut">('+q.points+' poin)</span></h2>';
-  if(q.type==='short')h+='<input value="'+esc(a||'')+'" placeholder="Jawaban Anda" oninput="sa(\''+q.id+'\',this.value)">';
-  else if(q.type==='para')h+='<textarea rows="8" placeholder="Tulis jawaban esai Anda di sini" oninput="sa(\''+q.id+'\',this.value)">'+esc(a||'')+'</textarea>';
-  else if(q.type==='drop')h+='<select onchange="sa(\''+q.id+'\',this.value===\'\'?undefined:+this.value)"><option value="">Pilih…</option>'+q.options.map((o,j)=>'<option value="'+j+'"'+(a===j?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
-  else q.options.forEach((o,j)=>{
-   const c=q.type==='check'?(a||[]).includes(j):a===j;
-   h+='<label class="o"><input type="'+(q.type==='check'?'checkbox':'radio')+'" name="r'+i+'" '+(c?'checked':'')+' onchange="sc(\''+q.id+'\','+j+',this.checked,\''+q.type+'\')">'+esc(o)+'</label>';
-  });
+ const f=F(S.id);if(!f){app.innerHTML='<div class="card"><h2>Ujian tidak ditemukan</h2><button class="btn g" onclick="go(\'\')">Kembali</button></div>';return}
+ if(!f.open){app.innerHTML='<div class="card top"><h2>Ujian ditutup</h2><button class="btn g" onclick="go(\'\')">Kembali</button></div>';return}
+ if(ls.get('done_'+f.id)){app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban dari perangkat ini sudah dikirim.</p><button class="btn g" onclick="go(\'\')">Kembali ke beranda</button></div>';return}
+ readDraft();S.started=true;
+ let h='<div class="card top"><div class="row"><button class="btn g" onclick="go(\'\')">← Kembali</button><span class="sp"></span>'+(f.duration?'<span class="tag">Sisa waktu: <b class="tm" id="tm">--:--</b></span>':'')+'</div><h1 style="margin-top:12px">'+esc(f.title)+'</h1><p>'+esc(f.desc||'Kerjakan semua soal dengan teliti.')+'</p><p class="mut">* Wajib diisi. Untuk soal esai, Anda dapat mengetik, menulis tangan, atau menggunakan keduanya.</p></div>';
+ h+='<div class="card"><h2>Identitas Siswa *</h2><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="identityChanged()"><input id="em" placeholder="NIS / Email" value="'+esc(S.em)+'" oninput="identityChanged()"></div>';
+ (f.questions||[]).forEach((q,i)=>{const a=S.ans[q.id];h+='<div class="card question" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+'</h2><div class="mut">'+q.points+' poin</div>';
+  if(q.type==='para'){
+   const val=typeof a==='object'&&a?a.text||'':typeof a==='string'?a:'';
+   h+='<label class="mut">Jawaban dengan ketikan</label><textarea rows="5" placeholder="Ketik jawaban di sini (boleh dikosongkan jika menulis tangan)..." oninput="setEssayText(\''+q.id+'\',this.value)">'+esc(val)+'</textarea>';
+   h+='<label class="mut">Jawaban dengan tulisan tangan</label><div class="canvas-wrap"><div class="draw-tools"><button class="btn g active" id="pen-'+q.id+'" onclick="setTool(\''+q.id+'\',\'pen\')">✎ Pena</button><button class="btn g" id="erase-'+q.id+'" onclick="setTool(\''+q.id+'\',\'erase\')">Penghapus</button><button class="btn g" onclick="undoStroke(\''+q.id+'\')">↶ Undo</button><button class="btn r" onclick="clearCanvas(\''+q.id+'\')">Hapus semua</button><label class="mut" style="display:flex;align-items:center;gap:5px">Ukuran <select style="width:auto;margin:0;padding:4px" onchange="setPenSize(\''+q.id+'\',this.value)"><option value="3">Tipis</option><option value="5" selected>Normal</option><option value="9">Tebal</option></select></label></div><canvas class="answer-canvas" id="cv-'+q.id+'" width="1000" height="400" aria-label="Kanvas tulisan tangan"></canvas></div><p class="hint">Gunakan jari, stylus, atau mouse. Goresan tersimpan otomatis di perangkat ini.</p>';
+  }else if(q.type==='short')h+='<input value="'+esc(a||'')+'" placeholder="Jawaban singkat" oninput="setAnswer(\''+q.id+'\',this.value)">';
+  else if(q.type==='drop')h+='<select onchange="setAnswer(\''+q.id+'\',this.value===\'\'?undefined:+this.value)"><option value="">Pilih jawaban…</option>'+(q.options||[]).map((o,j)=>'<option value="'+j+'"'+(a===j?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
+  else (q.options||[]).forEach((o,j)=>{const c=q.type==='check'?(a||[]).includes(j):a===j;h+='<label style="display:block;padding:7px 0"><input style="width:auto" type="'+(q.type==='check'?'checkbox':'radio')+'" name="r'+i+'" '+(c?'checked':'')+' onchange="choiceAnswer(\''+q.id+'\','+j+',this.checked,\''+q.type+'\')"> '+esc(o)+'</label>'});
   h+='</div>';
  });
- h+='<div class="row"><button class="btn" id="sb" onclick="submitExam(false)">Kirim</button><span class="err" id="se"></span></div>';
- app.innerHTML=h;
- if(f.duration){
-  const k='st_'+f.id;let st=+ls.get(k)||0;if(!st){st=Date.now();ls.set(k,st)}
-  const end=st+f.duration*60000;
-  const t=()=>{const r=Math.max(0,end-Date.now()),m=Math.floor(r/60000),s=Math.floor(r%60000/1000);const el=$('#tm');if(el)el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');if(r<=0){clearInterval(S.tick);submitExam(true)}};
-  t();S.tick=setInterval(t,1000);
- }
+ h+='<div class="card"><button class="btn" id="sb" onclick="submitExam(false)">Kirim Jawaban</button><div id="se" class="err"></div><p class="hint">Pastikan semua jawaban sudah benar sebelum dikirim.</p></div>';app.innerHTML=h;
+ (f.questions||[]).filter(q=>q.type==='para').forEach(q=>initCanvas(q.id,S.ans[q.id]?.drawing));
+ if(f.duration){const k='st_'+f.id;let st=+ls.get(k)||0;if(!st){st=Date.now();ls.set(k,st)}const end=st+f.duration*60000;const tick=()=>{const r=Math.max(0,end-Date.now()),el=$('#tm');if(el)el.textContent=String(Math.floor(r/60000)).padStart(2,'0')+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');if(r<=0){clearInterval(S.tick);submitExam(true)}};tick();S.tick=setInterval(tick,1000)}
 }
-function sv(){ls.set('draft_'+S.id,JSON.stringify({a:S.ans,n:$('#nm').value,e:$('#em').value}))}
-function sa(id,v){S.ans[id]=v;sv()}
-function sc(id,j,on,type){
- if(type==='check'){const a=new Set(S.ans[id]||[]);on?a.add(j):a.delete(j);S.ans[id]=[...a].sort()}else S.ans[id]=j;sv();
+function identityChanged(){S.nm=$('#nm').value;S.em=$('#em').value;saveDraft()}
+function setAnswer(id,v){S.ans[id]=v;saveDraft()}
+function setEssayText(id,v){const a=S.ans[id]&&typeof S.ans[id]==='object'?S.ans[id]:{text:typeof S.ans[id]==='string'?S.ans[id]:''};a.text=v;S.ans[id]=a;saveDraft()}
+function choiceAnswer(id,j,on,type){if(type==='check'){const a=new Set(S.ans[id]||[]);on?a.add(j):a.delete(j);S.ans[id]=[...a].sort((x,y)=>x-y)}else S.ans[id]=j;saveDraft()}
+function initCanvas(id,data){
+ const c=$('#cv-'+id);if(!c)return;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.lineCap='round';ctx.lineJoin='round';S.strokes[id]=[];
+ if(data){const im=new Image();im.onload=()=>ctx.drawImage(im,0,0,c.width,c.height);im.src=data}
+ const point=e=>{const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}};
+ let drawing=false;
+ c.addEventListener('pointerdown',e=>{e.preventDefault();c.setPointerCapture(e.pointerId);drawing=true;S.strokes[id].push(ctx.getImageData(0,0,c.width,c.height));const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.strokeStyle=(S.tools[id]==='erase'?'#fff':'#202124');ctx.lineWidth=S.tools[id]==='erase'?28:(S.tools[id]?.size||5)*2;ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()});
+ c.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.strokeStyle=(S.tools[id]==='erase'?'#fff':'#202124');ctx.lineWidth=S.tools[id]==='erase'?28:(S.tools[id]?.size||5)*2;ctx.lineTo(p.x,p.y);ctx.stroke()});
+ const end=()=>{if(!drawing)return;drawing=false;ctx.closePath();persistCanvas(id,c)};
+ c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);c.addEventListener('pointerleave',e=>{if(e.buttons===0)end()});
 }
-const empty=v=>v===undefined||v===''||(Array.isArray(v)&&!v.length);
+function persistCanvas(id,c){const a=S.ans[id]&&typeof S.ans[id]==='object'?S.ans[id]:{text:typeof S.ans[id]==='string'?S.ans[id]:''};a.drawing=c.toDataURL('image/jpeg',.68);S.ans[id]=a;saveDraft()}
+function setTool(id,tool){S.tools[id]=S.tools[id]||{size:5};S.tools[id].mode=tool;S.tools[id]=tool;$('#pen-'+id)?.classList.toggle('active',tool==='pen');$('#erase-'+id)?.classList.toggle('active',tool==='erase')}
+function setPenSize(id,v){S.tools[id]={mode:'pen',size:+v||5}}
+function undoStroke(id){const c=$('#cv-'+id),ctx=c?.getContext('2d'),stack=S.strokes[id];if(!c||!stack?.length)return;ctx.putImageData(stack.pop(),0,0);persistCanvas(id,c)}
+function clearCanvas(id){const c=$('#cv-'+id);if(!c)return;if(!confirm('Hapus seluruh tulisan tangan pada soal ini?'))return;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);S.strokes[id]=[];persistCanvas(id,c)}
+const empty=v=>v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length);
 async function submitExam(auto){
- const f=F(S.id),nm=$('#nm').value.trim(),em=$('#em').value.trim();
- if(!auto){
-  if(!nm||!em){$('#se').textContent='Isi nama dan NIS/email.';return}
-  const bad=(f.questions||[]).findIndex(q=>q.required&&empty(S.ans[q.id]));
-  if(bad>=0){$('#se').textContent='Soal nomor '+(bad+1)+' wajib diisi.';$('#q'+bad).scrollIntoView({behavior:'smooth',block:'center'});return}
-  if(!confirm('Kirim jawaban sekarang? Anda tidak dapat mengubahnya lagi.'))return;
- }
+ const f=F(S.id);S.nm=$('#nm')?.value.trim()||'';S.em=$('#em')?.value.trim()||'';
+ if(!auto){if(!S.nm||!S.em){$('#se').textContent='Isi nama lengkap dan NIS/email.';return}const bad=(f.questions||[]).findIndex(q=>q.required&&answerEmpty(q));if(bad>=0){$('#se').textContent='Soal nomor '+(bad+1)+' wajib dijawab.';$('#q'+bad).scrollIntoView({behavior:'smooth',block:'center'});return}if(!confirm('Kirim semua jawaban sekarang? Jawaban tidak dapat diubah setelah dikirim.'))return}
  const b=$('#sb');if(b)b.disabled=true;
  try{
-  const ans={};Object.entries(S.ans).forEach(([k,v])=>{if(!empty(v))ans[k]=v});
-  const rec={name:nm||'(tanpa nama)',email:em,answers:ans,submittedAt:Date.now(),auto:!!auto},rd=S.db.doc('responses/'+S.uid);try{await rd.update({['f_'+f.id]:rec})}catch(e1){await rd.set({['f_'+f.id]:rec})}
-  ls.set('done_'+f.id,'1');try{localStorage.removeItem('draft_'+f.id);localStorage.removeItem('st_'+f.id)}catch(e){}
-  clearInterval(S.tick);S.started=false;
-  app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban Anda sudah terkirim'+(auto?' (waktu habis)':'')+'. Terima kasih.</p><button class="btn" onclick="go(\'\')">Kembali ke beranda</button></div>';
- }catch(e){
-  if(b)b.disabled=false;const el=$('#se');if(el)el.textContent='Gagal mengirim: '+(e.message||e)+'. Pastikan Anda memiliki akses Kontributor.';
- }
-}
-
-/* ---------- TANGGAPAN (ADMIN) ---------- */
-function showResp(id){S.id=id;S.tab='resp';S.D=null;renderResp()}
-function grade(f,r){
- const km=S.keys[f.id]||{};let sc=0,mx=0;
- (f.questions||[]).forEach(q=>{
-  const k=km[q.id],a=r.answers[q.id];
-  if(q.type==='para'||k===undefined||k===''||(Array.isArray(k)&&!k.length))return;
-  mx+=q.points;
-  let ok=false;
-  if(q.type==='check')ok=Array.isArray(a)&&a.length===k.length&&k.every(x=>a.includes(x));
-  else if(q.type==='short')ok=typeof a==='string'&&String(k).split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).includes(a.trim().toLowerCase());
-  else ok=a===k;
-  if(ok)sc+=q.points;
- });
- return{sc,mx};
-}
-function fmt(q,a){
- if(a===undefined)return '—';
- if(q.type==='check')return a.map(j=>q.options[j]).join(', ');
- if(q.type==='radio'||q.type==='drop')return q.options[a]??'—';
- return a;
-}
-function renderResp(){
- const f=F(S.id);if(!f){go('');return}
- const rs=S.resp.filter(r=>r.formId===f.id).sort((a,b)=>b.submittedAt-a.submittedAt);
- let h='<div class="row" style="margin-bottom:12px"><button class="btn g" onclick="S.tab=\'\';S.id=null;render()">← Kembali</button><span class="sp"></span><button class="btn" onclick="csv()">Unduh CSV</button></div>';
- h+='<div class="card top"><h1>'+esc(f.title)+'</h1><div class="mut">'+rs.length+' tanggapan'+''+'</div></div>';
- // ringkasan
- (f.questions||[]).forEach((q,i)=>{
-  if(!['radio','check','drop'].includes(q.type))return;
-  const cnt=q.options.map((_,j)=>rs.filter(r=>{const a=r.answers[q.id];return Array.isArray(a)?a.includes(j):a===j}).length);
-  const mx=Math.max(1,...cnt);
-  h+='<div class="card"><h2>'+(i+1)+'. '+esc(q.text)+'</h2>'+q.options.map((o,j)=>'<div style="margin:4px 0">'+esc(o)+' <span class="mut">('+cnt[j]+')</span><div class="bb" style="width:'+(cnt[j]/mx*100)+'%"></div></div>').join('')+'</div>';
- });
- h+='<div class="card tw"><h2>Individu</h2><table><tr><th>Nama</th><th>NIS/Email</th><th>Waktu</th><th>Nilai</th></tr>';
- rs.forEach(r=>{const g=grade(f,r);h+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+new Date(r.submittedAt).toLocaleString('id-ID')+'</td><td>'+(g.mx?'<b>'+g.sc+'/'+g.mx+'</b>':'—')+'</td></tr>'});
- h+='</table></div>';
- rs.forEach(r=>{h+='<details class="card"><summary>'+esc(r.name)+' — jawaban</summary>'+(f.questions||[]).map((q,i)=>'<p><b>'+(i+1)+'. '+esc(q.text)+'</b><br>'+esc(fmt(q,r.answers[q.id]))+'</p>').join('')+'<button class="btn r" onclick="delResp(\''+r.id+'\')">Hapus tanggapan</button></details>'});
- app.innerHTML=h;
-}
-const avg=(f,rs)=>{let t=0,n=0;rs.forEach(r=>{const g=grade(f,r);if(g.mx){t+=g.sc/g.mx;n++}});return n?Math.round(t/n*100):0};
-async function delResp(id){if(confirm('Hapus tanggapan ini?'))try{const[d,k]=id.split('|');await S.db.doc('responses/'+d).update({[k]:null})}catch(e){alert(e.message)}}
-function csv(){
- const f=F(S.id),rs=S.resp.filter(r=>r.formId===f.id);
- const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
- let o=[['Nama','NIS/Email','Waktu','Skor','Maks',...(f.questions||[]).map(x=>x.text)].map(q).join(',')];
- rs.forEach(r=>{const g=grade(f,r);o.push([r.name,r.email,new Date(r.submittedAt).toISOString(),g.sc,g.mx,...(f.questions||[]).map(x=>fmt(x,r.answers[x.id]))].map(q).join(','))});
- const u=URL.createObjectURL(new Blob(['\ufeff'+o.join('\n')],{type:'text/csv'})),l=document.createElement('a');l.href=u;l.download='tanggapan-'+f.id+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+  const answers={};(f.questions||[]).forEach(q=>{if(!answerEmpty(q))answers[q.id]=S.ans[q.id]});
+  const rec={name:S.nm||'(tanpa nama)',email:S.em,answers,submittedAt:Date.now(),auto:!!auto};
+  await S.db.collection('responses').doc(S.uid).set({['f_'+f.id]:rec},{merge:true});
+  ls.set('done_'+f.id,'1');ls.del(draftKey());ls.del('st_'+f.id);clearInterval(S.tick);S.started=false;
+  app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban berhasil dikirim'+(auto?' karena waktu ujian habis':'')+'. Terima kasih.</p><button class="btn" onclick="go(\'\')">Kembali ke beranda</button></div>';
+ }catch(e){if(b)b.disabled=false;$('#se').textContent='Gagal mengirim jawaban: '+(e.message||e)+'. Periksa koneksi internet dan izin Firestore.'}
 }
 init();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
