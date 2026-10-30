@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eduessay — Panel Guru</title><meta name="theme-color" content="#4527a0">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<style>
+:root{--bg:#f3f0fa;--card:#fff;--ink:#24212b;--mut:#686273;--pri:#5e35b1;--line:#ded9e8;--bad:#c62828;--ok:#188038}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;position:sticky;top:0;z-index:3}header .in{max-width:1000px;margin:auto;display:flex;gap:12px;align-items:center}
+main{max-width:1000px;margin:22px auto;padding:0 14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}.hero{border-top:7px solid var(--pri)}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:12px 0 6px}.mut{color:var(--mut);font-size:13px}
+input,textarea,select{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#222;margin:5px 0}
+textarea{resize:vertical}.btn{font:inherit;border:0;border-radius:8px;padding:9px 14px;background:var(--pri);color:#fff;cursor:pointer}.btn.secondary{background:#fff;color:var(--pri);border:1px solid var(--line)}.btn.danger{background:#fff;color:var(--bad);border:1px solid var(--line)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab.active{background:var(--pri);color:white}.pill{display:inline-block;border-radius:20px;padding:2px 10px;background:#eee8fa;color:#4b3286;font-size:12px}
+.err{color:var(--bad)}.ok{color:var(--ok)}.qbox{border:1px solid var(--line);border-radius:9px;padding:12px;margin:10px 0}.option{display:flex;gap:7px;align-items:center}.option input{flex:1}.answer{background:#faf9fc;border:1px solid var(--line);border-radius:8px;padding:12px;margin:9px 0;overflow-wrap:anywhere}
+.handwriting{display:block;max-width:100%;height:auto;border:1px solid #ddd;border-radius:6px;background:white;margin-top:8px}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}.scroll{overflow:auto}
+@media(max-width:600px){main{margin:12px auto}.card{padding:14px}header{padding:10px}.hide-mobile{display:none}}
+</style>
+</head>
+<body>
+<header><div class="in"><strong>🎓 Eduessay — Panel Guru</strong><span class="grow"></span><span id="who" class="mut"></span><button id="authBtn" class="btn secondary" onclick="login()">Masuk Guru</button></div></header>
+<main id="app"><div class="card">Memuat panel guru…</div></main>
+<script>
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const state={auth:null,db:null,user:null,forms:[],keys:{},responses:[],tab:'forms',editing:null,selected:null};
+const isAdmin=u=>!!u&&!u.isAnonymous&&!!u.email&&Array.isArray(ADMIN_EMAILS)&&ADMIN_EMAILS.some(x=>x.toLowerCase()===u.email.toLowerCase());
+async function init(){
+ try{
+  firebase.initializeApp(FIREBASE_CONFIG);state.auth=firebase.auth();state.db=firebase.firestore();
+  try{await state.auth.getRedirectResult()}catch(e){console.error('Google redirect:',e)}
+  state.auth.onAuthStateChanged(u=>{
+   state.user=u;
+   if(!isAdmin(u)){state.forms=[];state.keys={};state.responses=[];renderLogin();return}
+   $('#who').textContent=u.email;$('#authBtn').textContent='Keluar';
+   watchData();
+  });
+ }catch(e){app.innerHTML='<div class="card err">'+esc(e.message)+'</div>'}
+}
+function renderLogin(){
+ $('#who').textContent='';
+ $('#authBtn').textContent='Masuk Guru';
+ app.innerHTML='<section class="card hero"><h1>Panel Guru Eduessay</h1><p>Masuk menggunakan akun Google yang telah didaftarkan sebagai admin/guru.</p><button class="btn" onclick="login()">Masuk dengan Google</button><p class="mut">Halaman guru terpisah dari halaman peserta. Akun yang tidak terdaftar tidak dapat membuka panel ini.</p></section>';
+}
+function login(){
+ if(isAdmin(state.user)){state.auth.signOut();return}
+ state.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(e=>alert('Login gagal: '+e.message));
+}
+let unsubs=[];
+function watchData(){
+ unsubs.forEach(f=>f());unsubs=[];
+ unsubs.push(state.db.collection('forms').onSnapshot(s=>{state.forms=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>showError(e)));
+ unsubs.push(state.db.collection('keys').onSnapshot(s=>{state.keys={};s.forEach(d=>state.keys[d.id]=d.data().map||{});render()},e=>showError(e)));
+ unsubs.push(state.db.collection('responses').onSnapshot(s=>{
+  state.responses=[];s.forEach(d=>{const x=d.data();Object.keys(x).forEach(k=>{if(k.startsWith('f_')&&x[k])state.responses.push({...x[k],docId:d.id,field:k,formId:k.slice(2),id:d.id+'|'+k})})});render();
+ },e=>showError(e)));
+}
+function showError(e){app.innerHTML='<div class="card err">Gagal memuat data: '+esc(e.message)+'</div>'}
+function nav(){return '<div class="tabs"><button class="btn tab '+(state.tab==='forms'?'active':'secondary')+'" onclick="state.tab=\'forms\';state.selected=null;state.editing=null;render()">Daftar Ujian</button><button class="btn tab '+(state.tab==='responses'?'active':'secondary')+'" onclick="state.tab=\'responses\';state.selected=null;state.editing=null;render()">Semua Tanggapan</button></div>'}
+function render(){
+ if(!isAdmin(state.user)){renderLogin();return}
+ if(state.editing){renderEditor();return}
+ if(state.selected){renderResponses(state.selected);return}
+ if(state.tab==='responses'){renderAllResponses();return}
+ renderForms();
+}
+function renderForms(){
+ let h=nav()+'<section class="card hero"><div class="row"><div class="grow"><h1>Kelola Ujian</h1><p class="mut">Buat ujian, atur soal dan kunci jawaban, lalu buka untuk siswa.</p></div><button class="btn" onclick="newForm()">＋ Buat Ujian</button></div></section>';
+ if(!state.forms.length)h+='<div class="card">Belum ada ujian.</div>';
+ state.forms.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(f=>{
+  const n=state.responses.filter(r=>r.formId===f.id).length;
+  h+='<section class="card"><div class="row"><div class="grow"><h2>'+esc(f.title||'Tanpa judul')+'</h2><div class="mut">'+(f.questions||[]).length+' soal · '+(f.duration?f.duration+' menit':'tanpa batas waktu')+' · '+n+' tanggapan</div></div><span class="pill">'+(f.open?'Dibuka':'Ditutup')+'</span></div><p>'+esc(f.desc||'')+'</p><div class="row"><button class="btn" onclick="openResponses(\''+f.id+'\')">Lihat Tanggapan</button><button class="btn secondary" onclick="editForm(\''+f.id+'\')">Ubah</button><button class="btn secondary" onclick="copyStudentLink()">Salin tautan siswa</button><button class="btn danger" onclick="deleteForm(\''+f.id+'\')">Hapus</button></div></section>';
+ });
+ app.innerHTML=h;
+}
+function copyStudentLink(){const url=location.origin+location.pathname.replace(/guru\/?$/,'');navigator.clipboard?.writeText(url).then(()=>alert('Tautan siswa disalin: '+url)).catch(()=>prompt('Salin tautan siswa:',url))}
+function newForm(){state.editing={id:Math.random().toString(36).slice(2,10),title:'Ujian baru',desc:'',duration:30,open:false,createdAt:Date.now(),questions:[],map:{}};addQuestion()}
+function editForm(id){const f=state.forms.find(x=>x.id===id);state.editing=JSON.parse(JSON.stringify(f));state.editing.map=JSON.parse(JSON.stringify(state.keys[id]||{}));renderEditor()}
+function addQuestion(){state.editing.questions.push({id:Math.random().toString(36).slice(2,10),type:'para',text:'',options:[],required:true,points:10});renderEditor()}
+function renderEditor(){
+ const d=state.editing;let h='<section class="card hero"><h1>Pengaturan Ujian</h1><input id="ftitle" placeholder="Judul ujian" value="'+esc(d.title)+'"><textarea id="fdesc" rows="2" placeholder="Petunjuk ujian">'+esc(d.desc||'')+'</textarea><div class="row"><label class="mut">Durasi (menit; 0 = tanpa batas)</label><input id="fduration" type="number" min="0" style="max-width:110px" value="'+(+d.duration||0)+'"><label><input id="fopen" type="checkbox" style="width:auto" '+(d.open?'checked':'')+'> Buka untuk siswa</label></div></section>';
+ d.questions.forEach((q,i)=>{
+  h+='<section class="qbox"><div class="row"><strong class="grow">Soal '+(i+1)+'</strong><button class="btn danger" onclick="removeQuestion('+i+')">Hapus soal</button></div><textarea id="qt-'+i+'" rows="3" placeholder="Tulis pertanyaan">'+esc(q.text)+'</textarea><div class="row"><select id="qtype-'+i+'" onchange="changeType('+i+',this.value)"><option value="para" '+(q.type==='para'?'selected':'')+'>Esai (teks + tulisan tangan)</option><option value="short" '+(q.type==='short'?'selected':'')+'>Jawaban singkat</option><option value="radio" '+(q.type==='radio'?'selected':'')+'>Pilihan ganda</option><option value="check" '+(q.type==='check'?'selected':'')+'>Kotak centang</option><option value="drop" '+(q.type==='drop'?'selected':'')+'>Dropdown</option></select><input id="qp-'+i+'" type="number" min="0" style="max-width:100px" value="'+(+q.points||0)+'" placeholder="Poin"><label><input id="qr-'+i+'" type="checkbox" style="width:auto" '+(q.required?'checked':'')+'> Wajib</label></div>';
+  if(['radio','check','drop'].includes(q.type)){h+='<h3>Opsi jawaban (klik tombol kunci untuk memilih jawaban benar)</h3>';q.options.forEach((o,j)=>{const key=d.map[q.id],correct=q.type==='check'?(key||[]).includes(j):key===j;h+='<div class="option"><input id="qo-'+i+'-'+j+'" value="'+esc(o)+'"><button class="btn '+(correct?'':'secondary')+'" onclick="setCorrect('+i+','+j+')">✓ Kunci</button><button class="btn danger" onclick="removeOption('+i+','+j+')">×</button></div>';});h+='<button class="btn secondary" onclick="addOption('+i+')">＋ Opsi</button>'}
+  if(q.type==='short')h+='<input id="qkey-'+i+'" placeholder="Kunci jawaban; pisahkan alternatif dengan koma" value="'+esc(d.map[q.id]||'')+'">';
+  h+='</section>';
+ });
+ h+='<div class="row"><button class="btn secondary" onclick="addQuestion()">＋ Tambah Soal</button><span class="grow"></span><button class="btn secondary" onclick="state.editing=null;render()">Batal</button><button class="btn" onclick="saveForm()">Simpan Ujian</button></div><div id="saveerr" class="err"></div>';
+ app.innerHTML=nav()+h;
+}
+function collectEditor(){
+ const d=state.editing;d.title=$('#ftitle').value.trim();d.desc=$('#fdesc').value;d.duration=+$('#fduration').value||0;d.open=$('#fopen').checked;
+ d.questions.forEach((q,i)=>{q.text=$('#qt-'+i).value;q.type=$('#qtype-'+i).value;q.points=+$('#qp-'+i).value||0;q.required=$('#qr-'+i).checked;if(['radio','check','drop'].includes(q.type))q.options=q.options.map((_,j)=>$('#qo-'+i+'-'+j)?.value??q.options[j]);if(q.type==='short')d.map[q.id]=$('#qkey-'+i).value});
+}
+function changeType(i,t){collectEditor();const q=state.editing.questions[i];q.type=t;if(!['radio','check','drop'].includes(t)){q.options=[];delete state.editing.map[q.id]}else if(!q.options.length)q.options=['Opsi 1'];renderEditor()}
+function addOption(i){collectEditor();state.editing.questions[i].options.push('Opsi '+(state.editing.questions[i].options.length+1));renderEditor()}
+function removeOption(i,j){collectEditor();const q=state.editing.questions[i];q.options.splice(j,1);delete state.editing.map[q.id];renderEditor()}
+function setCorrect(i,j){collectEditor();const q=state.editing.questions[i];if(q.type==='check'){const a=new Set(state.editing.map[q.id]||[]);a.has(j)?a.delete(j):a.add(j);state.editing.map[q.id]=[...a]}else state.editing.map[q.id]=j;renderEditor()}
+function removeQuestion(i){collectEditor();const q=state.editing.questions.splice(i,1)[0];delete state.editing.map[q.id];renderEditor()}
+async function saveForm(){
+ collectEditor();const d=state.editing;if(!d.title){$('#saveerr').textContent='Judul ujian wajib diisi.';return}
+ try{const{map,...form}=d;await state.db.collection('forms').doc(d.id).set(form);await state.db.collection('keys').doc(d.id).set({map});state.editing=null;state.tab='forms';render()}catch(e){$('#saveerr').textContent='Gagal menyimpan: '+e.message}
+}
+async function deleteForm(id){if(!confirm('Hapus ujian ini?'))return;try{await state.db.collection('forms').doc(id).delete();await state.db.collection('keys').doc(id).delete()}catch(e){alert(e.message)}}
+function openResponses(id){state.selected=id;render()}
+function renderAllResponses(){let h=nav()+'<section class="card hero"><h1>Semua Tanggapan</h1><p class="mut">Pilih ujian untuk melihat jawaban siswa, termasuk gambar tulisan tangan.</p></section>';state.forms.forEach(f=>{const n=state.responses.filter(r=>r.formId===f.id).length;h+='<section class="card"><div class="row"><strong class="grow">'+esc(f.title)+'</strong><span class="pill">'+n+' tanggapan</span><button class="btn" onclick="openResponses(\''+f.id+'\')">Lihat</button></div></section>'});app.innerHTML=h}
+function renderResponses(id){
+ const f=state.forms.find(x=>x.id===id);if(!f){state.selected=null;render();return}
+ const rs=state.responses.filter(r=>r.formId===id).sort((a,b)=>(b.submittedAt||0)-(a.submittedAt||0));
+ let h='<div class="row" style="margin-bottom:12px"><button class="btn secondary" onclick="state.selected=null;render()">← Kembali</button><span class="grow"></span><button class="btn secondary" onclick="downloadCSV(\''+id+'\')">Unduh CSV</button></div><section class="card hero"><h1>'+esc(f.title)+'</h1><p class="mut">'+rs.length+' tanggapan masuk</p></section>';
+ if(!rs.length)h+='<div class="card">Belum ada siswa yang mengirim jawaban.</div>';
+ rs.forEach((r,idx)=>{h+='<details class="card" '+(idx===0?'open':'')+'><summary><strong>'+esc(r.name||'Tanpa nama')+'</strong> <span class="mut">· '+esc(r.email||'')+' · '+new Date(r.submittedAt||0).toLocaleString('id-ID')+'</span></summary>';
+  (f.questions||[]).forEach((q,i)=>{const a=r.answers?.[q.id];h+='<div class="answer"><strong>'+(i+1)+'. '+esc(q.text)+'</strong><div style="white-space:pre-wrap;margin-top:7px">'+esc(typeof a==='object'&&a?a.text||'':typeof a==='string'?a:formatChoice(q,a))+'</div>';if(a&&typeof a==='object'&&a.drawing)h+='<div class="mut">Tulisan tangan:</div><img class="handwriting" src="'+a.drawing+'" alt="Jawaban tulisan tangan soal '+(i+1)+'">';h+='</div>'});
+  h+='<button class="btn danger" onclick="deleteResponse(\''+r.id+'\')">Hapus tanggapan</button></details>'});
+ app.innerHTML=h;
+}
+function formatChoice(q,a){if(a===undefined||a===null)return '—';if(q.type==='check')return Array.isArray(a)?a.map(j=>q.options[j]).join(', '):'';if(['radio','drop'].includes(q.type))return q.options?.[a]??'—';return String(a)}
+async function deleteResponse(id){if(!confirm('Hapus tanggapan siswa ini?'))return;try{const[d,k]=id.split('|');await state.db.collection('responses').doc(d).update({[k]:null})}catch(e){alert(e.message)}}
+function downloadCSV(id){const f=state.forms.find(x=>x.id===id),rs=state.responses.filter(x=>x.formId===id);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const rows=[['Nama','NIS/Email','Waktu',...(f.questions||[]).map(x=>x.text)].map(q).join(',')];rs.forEach(r=>rows.push([r.name,r.email,new Date(r.submittedAt||0).toISOString(),...(f.questions||[]).map(x=>{const a=r.answers?.[x.id];return typeof a==='object'&&a?a.text||'[Ada tulisan tangan]':formatChoice(x,a)})].map(q).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tanggapan-'+id+'.csv';a.click();URL.revokeObjectURL(url)}
+init();
+</script>
+</main>
+</body></html>
