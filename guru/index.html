@@ -30,65 +30,104 @@ table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;bord
 <script>
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const state={auth:null,db:null,user:null,forms:[],keys:{},responses:[],tab:'forms',editing:null,selected:null,authMessage:''};
+const state={auth:null,db:null,user:null,profile:null,forms:[],keys:{},responses:[],pending:[],tab:'forms',editing:null,selected:null,authMessage:'',isSuper:false};
 const isAdmin=u=>!!u&&!u.isAnonymous&&!!u.email&&Array.isArray(ADMIN_EMAILS)&&ADMIN_EMAILS.some(x=>x.trim().toLowerCase()===u.email.trim().toLowerCase());
+const isApproved=()=>state.isSuper||(!!state.profile&&state.profile.status==='approved'&&state.profile.role==='teacher');
 async function init(){
  try{
   firebase.initializeApp(FIREBASE_CONFIG);state.auth=firebase.auth();state.db=firebase.firestore();
-  state.auth.onAuthStateChanged(u=>{
-   state.user=u;
-   if(!isAdmin(u)){state.forms=[];state.keys={};state.responses=[];renderLogin();return}
-   state.authMessage='';$('#who').textContent=u.email;$('#authBtn').textContent='Keluar';watchData();
+  state.auth.onAuthStateChanged(async u=>{
+   state.user=u;state.profile=null;state.isSuper=isAdmin(u);
+   if(!u||u.isAnonymous){state.forms=[];state.keys={};state.responses=[];renderLogin();return}
+   try{
+    if(state.isSuper){state.profile={role:'superadmin',status:'approved',name:'Super Admin'};}
+    else{
+     const ref=state.db.collection('users').doc(u.uid);let snap=await ref.get();
+     if(!snap.exists){
+      await ref.set({uid:u.uid,email:u.email||'',name:u.displayName||'',photoURL:u.photoURL||'',role:'teacher',status:'pending',subject:'',school:'',createdAt:Date.now()});
+      snap=await ref.get();
+     }
+     state.profile=snap.data()||{};
+    }
+    $('#who').textContent=u.email||'';$('#authBtn').textContent='Keluar';
+    if(!isApproved()){state.forms=[];state.keys={};state.responses=[];renderPending();return}
+    watchData();
+   }catch(e){state.authMessage='Tidak dapat membaca profil: '+(e.code||'')+' — '+e.message;renderLogin()}
   },e=>{state.authMessage='Status autentikasi gagal: '+e.code+' — '+e.message;renderLogin()});
-  try{const result=await state.auth.getRedirectResult();if(result&&result.user){state.user=result.user;if(!isAdmin(result.user))state.authMessage='Login berhasil, tetapi akun '+(result.user.email||'ini')+' belum terdaftar sebagai admin. Gunakan '+ADMIN_EMAILS.join(', ')+'.';}}
-  catch(e){state.authMessage='Login Google gagal: '+(e.code||'')+' — '+e.message;console.error('Google redirect:',e);renderLogin()}
  }catch(e){app.innerHTML='<div class="card err">Gagal memulai Firebase: '+esc(e.message)+'</div>'}
 }
 function renderLogin(){
  $('#who').textContent=state.user&&state.user.email?'Akun: '+state.user.email:'';
  $('#authBtn').textContent='Masuk Guru';
- app.innerHTML='<section class="card hero"><h1>Panel Guru Eduessay</h1><p>Masuk menggunakan akun Google yang telah didaftarkan sebagai admin/guru.</p><button class="btn" onclick="login()">Masuk dengan Google</button><p class="mut">Halaman guru terpisah dari halaman peserta. Akun yang tidak terdaftar tidak dapat membuka panel ini.</p>'+(state.authMessage?'<p class="err"><strong>Informasi login:</strong> '+esc(state.authMessage)+'</p>':'')+(state.user&&!state.user.isAnonymous?'<p class="mut">Akun terdeteksi: '+esc(state.user.email||'tanpa email')+'</p>':'')+'</section>';
+ app.innerHTML='<section class="card hero"><h1>Eduessay untuk Guru</h1><p>Masuk dengan akun Google untuk mendaftar sebagai guru. Akun baru akan menunggu persetujuan Super Admin.</p><button class="btn" onclick="login()">Daftar / Masuk dengan Google</button>'+(state.authMessage?'<p class="err">'+esc(state.authMessage)+'</p>':'')+'</section>';
+}
+function renderPending(){
+ $('#who').textContent=state.user?.email||'';$('#authBtn').textContent='Keluar';
+ app.innerHTML='<section class="card hero"><h1>Pendaftaran Guru Diterima</h1><p>Akun <strong>'+esc(state.user?.email||'')+'</strong> sudah terdaftar.</p><span class="pill">Menunggu persetujuan Super Admin</span><p class="mut">Setelah disetujui, Anda dapat mengatur profil, membuat ujian, dan membagikan tautan khusus mata pelajaran.</p></section>';
 }
 async function login(){
- if(isAdmin(state.user)){await state.auth.signOut();return}
+ if(state.user){await state.auth.signOut();return}
  state.authMessage='Membuka jendela login Google…';renderLogin();
  const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
- try{
-  const result=await state.auth.signInWithPopup(provider);
-  state.user=result.user;
-  if(!isAdmin(result.user)){state.authMessage='Login Google berhasil, tetapi akun '+(result.user.email||'ini')+' tidak terdaftar sebagai admin. Akun admin yang diizinkan: '+ADMIN_EMAILS.join(', ');await state.auth.signOut();renderLogin();return;}
-  state.authMessage='';$('#who').textContent=result.user.email;$('#authBtn').textContent='Keluar';watchData();
- }catch(e){state.authMessage='Login Google gagal: '+(e.code||'')+' — '+e.message;console.error('Login guru:',e);renderLogin()}
+ try{await state.auth.signInWithPopup(provider)}
+ catch(e){state.authMessage='Login Google gagal: '+(e.code||'')+' — '+e.message;renderLogin()}
 }
 let unsubs=[];
 function watchData(){
  unsubs.forEach(f=>f());unsubs=[];
- unsubs.push(state.db.collection('forms').onSnapshot(s=>{state.forms=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>showError(e)));
- unsubs.push(state.db.collection('keys').onSnapshot(s=>{state.keys={};s.forEach(d=>state.keys[d.id]=d.data().map||{});render()},e=>showError(e)));
- unsubs.push(state.db.collection('responses').onSnapshot(s=>{
-  state.responses=[];s.forEach(d=>{const x=d.data();Object.keys(x).forEach(k=>{if(k.startsWith('f_')&&x[k])state.responses.push({...x[k],docId:d.id,field:k,formId:k.slice(2),id:d.id+'|'+k})})});render();
+ const fq=state.isSuper?state.db.collection('forms'):state.db.collection('forms').where('ownerUid','==',state.user.uid);
+ unsubs.push(fq.onSnapshot(async s=>{
+  state.forms=s.docs.map(d=>({id:d.id,...d.data()}));
+  state.keys={};
+  await Promise.all(state.forms.map(async f=>{try{const k=await state.db.collection('keys').doc(f.id).get();if(k.exists)state.keys[f.id]=k.data().map||{}}catch(e){console.warn('Kunci tidak dapat dibaca',f.id,e.message)}}));
+  watchResponses();render();
  },e=>showError(e)));
+ if(state.isSuper){
+  unsubs.push(state.db.collection('users').where('status','==','pending').onSnapshot(s=>{state.pending=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>showError(e)));
+ }
+}
+function watchResponses(){
+ const queries=state.forms.map(f=>state.db.collection('responses').where('formId','==',f.id).onSnapshot(s=>{
+  const others=state.responses.filter(r=>r.formId!==f.id);
+  const mine=s.docs.map(d=>({id:d.id,...d.data()}));
+  state.responses=[...others,...mine];render();
+ },e=>showError(e)));
+ unsubs.push(...queries);
+}
+async function approveTeacher(uid,approve){
+ try{
+  await state.db.collection('users').doc(uid).update({status:approve?'approved':'rejected',reviewedAt:Date.now(),reviewedBy:state.user.uid});
+  alert(approve?'Guru berhasil disetujui.':'Pendaftaran guru ditolak.');
+ }catch(e){alert('Gagal memproses: '+e.message)}
 }
 function showError(e){app.innerHTML='<div class="card err">Gagal memuat data: '+esc(e.message)+'</div>'}
-function nav(){return '<div class="tabs"><button class="btn tab '+(state.tab==='forms'?'active':'secondary')+'" onclick="state.tab=\'forms\';state.selected=null;state.editing=null;render()">Daftar Ujian</button><button class="btn tab '+(state.tab==='responses'?'active':'secondary')+'" onclick="state.tab=\'responses\';state.selected=null;state.editing=null;render()">Semua Tanggapan</button></div>'}
+function nav(){let h='<div class="tabs"><button class="btn tab '+(state.tab==='forms'?'active':'secondary')+'" onclick="state.tab=\'forms\';state.selected=null;state.editing=null;render()">Daftar Ujian</button><button class="btn tab '+(state.tab==='responses'?'active':'secondary')+'" onclick="state.tab=\'responses\';state.selected=null;state.editing=null;render()">Semua Tanggapan</button>';if(state.isSuper)h+='<button class="btn tab '+(state.tab==='approvals'?'active':'secondary')+'" onclick="state.tab=\'approvals\';render()">Persetujuan Guru ('+state.pending.length+')</button>';return h+'</div>'}
 function render(){
- if(!isAdmin(state.user)){renderLogin();return}
+ if(!state.user||state.user.isAnonymous){renderLogin();return}
+ if(!isApproved()){renderPending();return}
+ if(state.tab==='approvals'&&state.isSuper){renderApprovals();return}
  if(state.editing){renderEditor();return}
  if(state.selected){renderResponses(state.selected);return}
  if(state.tab==='responses'){renderAllResponses();return}
  renderForms();
+}
+function renderApprovals(){
+ let h=nav()+'<section class="card hero"><h1>Persetujuan Pendaftaran Guru</h1><p class="mut">Periksa akun guru sebelum memberikan akses membuat ujian.</p></section>';
+ if(!state.pending.length)h+='<div class="card">Tidak ada pendaftaran yang menunggu persetujuan.</div>';
+ state.pending.forEach(p=>{h+='<section class="card"><h2>'+esc(p.name||p.email)+'</h2><p class="mut">'+esc(p.email)+' · '+esc(p.subject||'Mata pelajaran belum diisi')+'</p><div class="row"><button class="btn" onclick="approveTeacher(\''+p.id+'\',true)">Setujui</button><button class="btn danger" onclick="approveTeacher(\''+p.id+'\',false)">Tolak</button></div></section>'});
+ app.innerHTML=h;
 }
 function renderForms(){
  let h=nav()+'<section class="card hero"><div class="row"><div class="grow"><h1>Kelola Ujian</h1><p class="mut">Buat ujian, atur soal dan kunci jawaban, lalu buka untuk siswa.</p></div><button class="btn" onclick="newForm()">＋ Buat Ujian</button></div></section>';
  if(!state.forms.length)h+='<div class="card">Belum ada ujian.</div>';
  state.forms.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(f=>{
   const n=state.responses.filter(r=>r.formId===f.id).length;
-  h+='<section class="card"><div class="row"><div class="grow"><h2>'+esc(f.title||'Tanpa judul')+'</h2><div class="mut">'+(f.questions||[]).length+' soal · '+(f.duration?f.duration+' menit':'tanpa batas waktu')+' · '+n+' tanggapan</div></div><span class="pill">'+(f.open?'Dibuka':'Ditutup')+'</span></div><p>'+esc(f.desc||'')+'</p><div class="row"><button class="btn" onclick="openResponses(\''+f.id+'\')">Lihat Tanggapan</button><button class="btn secondary" onclick="editForm(\''+f.id+'\')">Ubah</button><button class="btn secondary" onclick="copyStudentLink()">Salin tautan siswa</button><button class="btn danger" onclick="deleteForm(\''+f.id+'\')">Hapus</button></div></section>';
+  h+='<section class="card"><div class="row"><div class="grow"><h2>'+esc(f.title||'Tanpa judul')+'</h2><div class="mut">'+(f.questions||[]).length+' soal · '+(f.duration?f.duration+' menit':'tanpa batas waktu')+' · '+n+' tanggapan</div></div><span class="pill">'+(f.open?'Dibuka':'Ditutup')+'</span></div><p>'+esc(f.desc||'')+'</p><div class="row"><button class="btn" onclick="openResponses(\''+f.id+'\')">Lihat Tanggapan</button><button class="btn secondary" onclick="editForm(\''+f.id+'\')">Ubah</button><button class="btn secondary" onclick="copyStudentLink(\''+f.id+'\')">Salin tautan ujian</button><button class="btn danger" onclick="deleteForm(\''+f.id+'\')">Hapus</button></div></section>';
  });
  app.innerHTML=h;
 }
-function copyStudentLink(){const url=location.origin+location.pathname.replace(/guru\/?$/,'');navigator.clipboard?.writeText(url).then(()=>alert('Tautan siswa disalin: '+url)).catch(()=>prompt('Salin tautan siswa:',url))}
-function newForm(){state.editing={id:Math.random().toString(36).slice(2,10),title:'Ujian baru',desc:'',duration:30,open:false,createdAt:Date.now(),questions:[],map:{}};addQuestion()}
+function copyStudentLink(id){const base=location.origin+location.pathname.replace(/guru\/?$/,'');const url=base+'#f-'+id;navigator.clipboard?.writeText(url).then(()=>alert('Tautan ujian disalin: '+url)).catch(()=>prompt('Salin tautan ujian:',url))}
+function newForm(){state.editing={id:Math.random().toString(36).slice(2,10),title:'Ujian baru',desc:'',duration:30,open:false,createdAt:Date.now(),ownerUid:state.user.uid,ownerName:state.profile?.name||state.user.displayName||state.user.email,subject:state.profile?.subject||'',className:'',questions:[],map:{}};addQuestion()}
 function editForm(id){const f=state.forms.find(x=>x.id===id);state.editing=JSON.parse(JSON.stringify(f));state.editing.map=JSON.parse(JSON.stringify(state.keys[id]||{}));renderEditor()}
 function addQuestion(){state.editing.questions.push({id:Math.random().toString(36).slice(2,10),type:'para',text:'',options:[],required:true,points:10});renderEditor()}
 function renderEditor(){
@@ -113,7 +152,7 @@ function setCorrect(i,j){collectEditor();const q=state.editing.questions[i];if(q
 function removeQuestion(i){collectEditor();const q=state.editing.questions.splice(i,1)[0];delete state.editing.map[q.id];renderEditor()}
 async function saveForm(){
  collectEditor();const d=state.editing;if(!d.title){$('#saveerr').textContent='Judul ujian wajib diisi.';return}
- try{const{map,...form}=d;await state.db.collection('forms').doc(d.id).set(form);await state.db.collection('keys').doc(d.id).set({map});state.editing=null;state.tab='forms';render()}catch(e){$('#saveerr').textContent='Gagal menyimpan: '+e.message}
+ try{const{map,...form}=d;form.ownerUid=form.ownerUid||state.user.uid;form.ownerName=state.profile?.name||state.user.displayName||state.user.email;await state.db.collection('forms').doc(d.id).set(form,{merge:true});await state.db.collection('keys').doc(d.id).set({map});state.editing=null;state.tab='forms';render()}catch(e){$('#saveerr').textContent='Gagal menyimpan: '+e.message}
 }
 async function deleteForm(id){if(!confirm('Hapus ujian ini?'))return;try{await state.db.collection('forms').doc(id).delete();await state.db.collection('keys').doc(id).delete()}catch(e){alert(e.message)}}
 function openResponses(id){state.selected=id;render()}
@@ -129,7 +168,7 @@ function renderResponses(id){
  app.innerHTML=h;
 }
 function formatChoice(q,a){if(a===undefined||a===null)return '—';if(q.type==='check')return Array.isArray(a)?a.map(j=>q.options[j]).join(', '):'';if(['radio','drop'].includes(q.type))return q.options?.[a]??'—';return String(a)}
-async function deleteResponse(id){if(!confirm('Hapus tanggapan siswa ini?'))return;try{const[d,k]=id.split('|');await state.db.collection('responses').doc(d).update({[k]:null})}catch(e){alert(e.message)}}
+async function deleteResponse(id){if(!confirm('Hapus tanggapan siswa ini?'))return;try{await state.db.collection('responses').doc(id).delete()}catch(e){alert(e.message)}}
 function downloadCSV(id){const f=state.forms.find(x=>x.id===id),rs=state.responses.filter(x=>x.formId===id);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const rows=[['Nama','NIS/Email','Waktu',...(f.questions||[]).map(x=>x.text)].map(q).join(',')];rs.forEach(r=>rows.push([r.name,r.email,new Date(r.submittedAt||0).toISOString(),...(f.questions||[]).map(x=>{const a=r.answers?.[x.id];return typeof a==='object'&&a?a.text||'[Ada tulisan tangan]':formatChoice(x,a)})].map(q).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tanggapan-'+id+'.csv';a.click();URL.revokeObjectURL(url)}
 init();
 </script>
