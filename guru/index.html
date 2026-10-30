@@ -155,7 +155,7 @@ async function saveForm(){
  collectEditor();const d=state.editing;if(!d.title){$('#saveerr').textContent='Judul ujian wajib diisi.';return}
  try{const{map,...form}=d;form.ownerUid=form.ownerUid||state.user.uid;form.ownerName=state.profile?.name||state.user.displayName||state.user.email;await state.db.collection('forms').doc(d.id).set(form,{merge:true});await state.db.collection('keys').doc(d.id).set({map});state.editing=null;state.tab='forms';render()}catch(e){$('#saveerr').textContent='Gagal menyimpan: '+e.message}
 }
-async function deleteForm(id){if(!confirm('Hapus ujian ini?'))return;try{await state.db.collection('forms').doc(id).delete();await state.db.collection('keys').doc(id).delete()}catch(e){alert(e.message)}}
+async function deleteForm(id){if(!confirm('Hapus ujian ini?'))return;try{await state.db.collection('keys').doc(id).delete();await state.db.collection('forms').doc(id).delete()}catch(e){alert(e.message)}}
 function openResponses(id){state.selected=id;render()}
 function renderAllResponses(){let h=nav()+'<section class="card hero"><h1>Semua Tanggapan</h1><p class="mut">Pilih ujian untuk melihat jawaban siswa, termasuk gambar tulisan tangan.</p></section>';state.forms.forEach(f=>{const n=state.responses.filter(r=>r.formId===f.id).length;h+='<section class="card"><div class="row"><strong class="grow">'+esc(f.title)+'</strong><span class="pill">'+n+' tanggapan</span><button class="btn" onclick="openResponses(\''+f.id+'\')">Lihat</button></div></section>'});app.innerHTML=h}
 function renderResponses(id){
