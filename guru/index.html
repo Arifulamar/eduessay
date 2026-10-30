@@ -28,28 +28,30 @@ table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;bord
 <script>
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const state={auth:null,db:null,user:null,forms:[],keys:{},responses:[],tab:'forms',editing:null,selected:null};
-const isAdmin=u=>!!u&&!u.isAnonymous&&!!u.email&&Array.isArray(ADMIN_EMAILS)&&ADMIN_EMAILS.some(x=>x.toLowerCase()===u.email.toLowerCase());
+const state={auth:null,db:null,user:null,forms:[],keys:{},responses:[],tab:'forms',editing:null,selected:null,authMessage:''};
+const isAdmin=u=>!!u&&!u.isAnonymous&&!!u.email&&Array.isArray(ADMIN_EMAILS)&&ADMIN_EMAILS.some(x=>x.trim().toLowerCase()===u.email.trim().toLowerCase());
 async function init(){
  try{
   firebase.initializeApp(FIREBASE_CONFIG);state.auth=firebase.auth();state.db=firebase.firestore();
-  try{await state.auth.getRedirectResult()}catch(e){console.error('Google redirect:',e)}
   state.auth.onAuthStateChanged(u=>{
    state.user=u;
    if(!isAdmin(u)){state.forms=[];state.keys={};state.responses=[];renderLogin();return}
-   $('#who').textContent=u.email;$('#authBtn').textContent='Keluar';
-   watchData();
-  });
- }catch(e){app.innerHTML='<div class="card err">'+esc(e.message)+'</div>'}
+   state.authMessage='';$('#who').textContent=u.email;$('#authBtn').textContent='Keluar';watchData();
+  },e=>{state.authMessage='Status autentikasi gagal: '+e.code+' — '+e.message;renderLogin()});
+  try{const result=await state.auth.getRedirectResult();if(result&&result.user){state.user=result.user;if(!isAdmin(result.user))state.authMessage='Login berhasil, tetapi akun '+(result.user.email||'ini')+' belum terdaftar sebagai admin. Gunakan '+ADMIN_EMAILS.join(', ')+'.';}}
+  catch(e){state.authMessage='Login Google gagal: '+(e.code||'')+' — '+e.message;console.error('Google redirect:',e);renderLogin()}
+ }catch(e){app.innerHTML='<div class="card err">Gagal memulai Firebase: '+esc(e.message)+'</div>'}
 }
 function renderLogin(){
- $('#who').textContent='';
+ $('#who').textContent=state.user&&state.user.email?'Akun: '+state.user.email:'';
  $('#authBtn').textContent='Masuk Guru';
- app.innerHTML='<section class="card hero"><h1>Panel Guru Eduessay</h1><p>Masuk menggunakan akun Google yang telah didaftarkan sebagai admin/guru.</p><button class="btn" onclick="login()">Masuk dengan Google</button><p class="mut">Halaman guru terpisah dari halaman peserta. Akun yang tidak terdaftar tidak dapat membuka panel ini.</p></section>';
+ app.innerHTML='<section class="card hero"><h1>Panel Guru Eduessay</h1><p>Masuk menggunakan akun Google yang telah didaftarkan sebagai admin/guru.</p><button class="btn" onclick="login()">Masuk dengan Google</button><p class="mut">Halaman guru terpisah dari halaman peserta. Akun yang tidak terdaftar tidak dapat membuka panel ini.</p>'+(state.authMessage?'<p class="err"><strong>Informasi login:</strong> '+esc(state.authMessage)+'</p>':'')+(state.user&&!state.user.isAnonymous?'<p class="mut">Akun terdeteksi: '+esc(state.user.email||'tanpa email')+'</p>':'')+'</section>';
 }
 function login(){
  if(isAdmin(state.user)){state.auth.signOut();return}
- state.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(e=>alert('Login gagal: '+e.message));
+ state.authMessage='Mengalihkan ke Google…';renderLogin();
+ const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+ state.auth.signInWithRedirect(provider).catch(e=>{state.authMessage='Login gagal: '+(e.code||'')+' — '+e.message;renderLogin()});
 }
 let unsubs=[];
 function watchData(){
