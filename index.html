@@ -118,7 +118,7 @@ async function submitExam(auto){
  try{
   const answers={};(f.questions||[]).forEach(q=>{if(!answerEmpty(q))answers[q.id]=S.ans[q.id]});
   const rec={name:S.nm||'(tanpa nama)',email:S.em,answers,submittedAt:Date.now(),auto:!!auto};
-  await S.db.collection('responses').doc(S.uid).set({['f_'+f.id]:rec},{merge:true});
+  await S.db.collection('responses').doc(S.uid+'_'+f.id).set({formId:f.id,studentUid:S.uid,name:rec.name,email:rec.email,answers:rec.answers,submittedAt:rec.submittedAt,auto:rec.auto},{merge:false});
   ls.set('done_'+f.id,'1');ls.del(draftKey());ls.del('st_'+f.id);clearInterval(S.tick);S.started=false;
   app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban berhasil dikirim'+(auto?' karena waktu ujian habis':'')+'. Terima kasih.</p><button class="btn" onclick="go(\'\')">Kembali ke beranda</button></div>';
  }catch(e){if(b)b.disabled=false;$('#se').textContent='Gagal mengirim jawaban: '+(e.message||e)+'. Periksa koneksi internet dan izin Firestore.'}
