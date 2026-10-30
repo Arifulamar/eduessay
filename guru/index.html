@@ -47,11 +47,16 @@ function renderLogin(){
  $('#authBtn').textContent='Masuk Guru';
  app.innerHTML='<section class="card hero"><h1>Panel Guru Eduessay</h1><p>Masuk menggunakan akun Google yang telah didaftarkan sebagai admin/guru.</p><button class="btn" onclick="login()">Masuk dengan Google</button><p class="mut">Halaman guru terpisah dari halaman peserta. Akun yang tidak terdaftar tidak dapat membuka panel ini.</p>'+(state.authMessage?'<p class="err"><strong>Informasi login:</strong> '+esc(state.authMessage)+'</p>':'')+(state.user&&!state.user.isAnonymous?'<p class="mut">Akun terdeteksi: '+esc(state.user.email||'tanpa email')+'</p>':'')+'</section>';
 }
-function login(){
- if(isAdmin(state.user)){state.auth.signOut();return}
- state.authMessage='Mengalihkan ke Google…';renderLogin();
+async function login(){
+ if(isAdmin(state.user)){await state.auth.signOut();return}
+ state.authMessage='Membuka jendela login Google…';renderLogin();
  const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
- state.auth.signInWithRedirect(provider).catch(e=>{state.authMessage='Login gagal: '+(e.code||'')+' — '+e.message;renderLogin()});
+ try{
+  const result=await state.auth.signInWithPopup(provider);
+  state.user=result.user;
+  if(!isAdmin(result.user)){state.authMessage='Login Google berhasil, tetapi akun '+(result.user.email||'ini')+' tidak terdaftar sebagai admin. Akun admin yang diizinkan: '+ADMIN_EMAILS.join(', ');await state.auth.signOut();renderLogin();return;}
+  state.authMessage='';$('#who').textContent=result.user.email;$('#authBtn').textContent='Keluar';watchData();
+ }catch(e){state.authMessage='Login Google gagal: '+(e.code||'')+' — '+e.message;console.error('Login guru:',e);renderLogin()}
 }
 let unsubs=[];
 function watchData(){
