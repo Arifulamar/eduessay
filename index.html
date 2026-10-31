@@ -35,7 +35,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--pri)}textarea{resize:
 <div class="bar"><div class="in"><strong style="font-size:18px">📝 Eduessay</strong><span class="sp"></span><span class="tag">Mode Siswa</span></div></div>
 <div class="w" id="app"><div class="card">Memuat ujian…</div></div>
 <script>
-const S={db:null,auth:null,uid:null,forms:[],view:'home',id:null,ans:{},nm:'',em:'',tick:null,started:false,strokes:{},tools:{}};
+const S={db:null,auth:null,uid:null,forms:[],view:'home',id:null,ans:{},nm:'',kelas:'',tick:null,started:false,strokes:{},tools:{}};
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
@@ -63,8 +63,8 @@ function renderHome(){
  app.innerHTML=h;
 }
 function draftKey(){return 'draft_'+S.id}
-function readDraft(){let d={};try{d=JSON.parse(ls.get(draftKey())||'{}')}catch(e){}S.ans=d.a||{};S.nm=d.n||'';S.em=d.e||''}
-function saveDraft(){ls.set(draftKey(),JSON.stringify({a:S.ans,n:S.nm,e:S.em}))}
+function readDraft(){let d={};try{d=JSON.parse(ls.get(draftKey())||'{}')}catch(e){}S.ans=d.a||{};S.nm=d.n||'';S.kelas=d.k||''}
+function saveDraft(){ls.set(draftKey(),JSON.stringify({a:S.ans,n:S.nm,k:S.kelas}))}
 function answerEmpty(q){
  const a=S.ans[q.id];if(a===undefined||a===null||a==='')return true;
  if((q.type==='para'||q.type==='essay_hand')&&typeof a==='object')return !(String(a.text||'').trim()||a.drawing);
@@ -76,7 +76,7 @@ function renderTake(){
  if(ls.get('done_'+f.id)){app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban dari perangkat ini sudah dikirim.</p><button class="btn g" onclick="go(\'\')">Kembali ke beranda</button></div>';return}
  readDraft();S.started=true;
  let h='<div class="card top"><div class="row"><button class="btn g" onclick="go(\'\')">← Kembali</button><span class="sp"></span>'+(f.duration?'<span class="tag">Sisa waktu: <b class="tm" id="tm">--:--</b></span>':'')+'</div><h1 style="margin-top:12px">'+esc(f.title)+'</h1><p>'+esc(f.desc||'Kerjakan semua soal dengan teliti.')+'</p><p class="mut">* Wajib diisi. Untuk soal esai, Anda dapat mengetik, menulis tangan, atau menggunakan keduanya.</p></div>';
- h+='<div class="card"><h2>Identitas Siswa *</h2><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="identityChanged()"><input id="em" placeholder="NIS / Email" value="'+esc(S.em)+'" oninput="identityChanged()"></div>';
+ h+='<div class="card"><h2>Identitas Siswa *</h2><label for="nm">Nama Lengkap *</label><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="identityChanged()"><label for="kelas">Kelas *</label><input id="kelas" placeholder="Contoh: XII IPA 1" value="'+esc(S.kelas)+'" oninput="identityChanged()"></div>';
  (f.questions||[]).forEach((q,i)=>{const a=S.ans[q.id];h+='<div class="card question" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+'</h2>'+(q.image?'<img class="question-image" src="'+q.image+'" alt="Gambar soal '+(i+1)+'" style="display:block;max-width:100%;max-height:520px;object-fit:contain;margin:12px 0;border-radius:8px">':'')+'<div class="mut">'+q.points+' poin</div>';
   if(q.type==='para'||q.type==='essay_text'){
    const val=typeof a==='object'&&a?a.text||'':typeof a==='string'?a:'';
@@ -91,7 +91,7 @@ function renderTake(){
  (f.questions||[]).filter(q=>q.type==='essay_hand'||q.type==='para').forEach(q=>initCanvas(q.id,S.ans[q.id]?.drawing));
  if(f.duration){const k='st_'+f.id;let st=+ls.get(k)||0;if(!st){st=Date.now();ls.set(k,st)}const end=st+f.duration*60000;const tick=()=>{const r=Math.max(0,end-Date.now()),el=$('#tm');if(el)el.textContent=String(Math.floor(r/60000)).padStart(2,'0')+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');if(r<=0){clearInterval(S.tick);submitExam(true)}};tick();S.tick=setInterval(tick,1000)}
 }
-function identityChanged(){S.nm=$('#nm').value;S.em=$('#em').value;saveDraft()}
+function identityChanged(){S.nm=$('#nm').value;S.kelas=$('#kelas').value;saveDraft()}
 function setAnswer(id,v){S.ans[id]=v;saveDraft()}
 function setEssayText(id,v){S.ans[id]=v;saveDraft()}
 function choiceAnswer(id,j,on,type){if(type==='check'){const a=new Set(S.ans[id]||[]);on?a.add(j):a.delete(j);S.ans[id]=[...a].sort((x,y)=>x-y)}else S.ans[id]=j;saveDraft()}
@@ -112,13 +112,13 @@ function undoStroke(id){const c=$('#cv-'+id),ctx=c?.getContext('2d'),stack=S.str
 function clearCanvas(id){const c=$('#cv-'+id);if(!c)return;if(!confirm('Hapus seluruh tulisan tangan pada soal ini?'))return;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);S.strokes[id]=[];persistCanvas(id,c)}
 const empty=v=>v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length);
 async function submitExam(auto){
- const f=F(S.id);S.nm=$('#nm')?.value.trim()||'';S.em=$('#em')?.value.trim()||'';
- if(!auto){if(!S.nm||!S.em){$('#se').textContent='Isi nama lengkap dan NIS/email.';return}const bad=(f.questions||[]).findIndex(q=>q.required&&answerEmpty(q));if(bad>=0){$('#se').textContent='Soal nomor '+(bad+1)+' wajib dijawab.';$('#q'+bad).scrollIntoView({behavior:'smooth',block:'center'});return}if(!confirm('Kirim semua jawaban sekarang? Jawaban tidak dapat diubah setelah dikirim.'))return}
+ const f=F(S.id);S.nm=$('#nm')?.value.trim()||'';S.kelas=$('#kelas')?.value.trim()||'';
+ if(!auto){if(!S.nm||!S.kelas){$('#se').textContent='Isi nama lengkap dan kelas.';return}const bad=(f.questions||[]).findIndex(q=>q.required&&answerEmpty(q));if(bad>=0){$('#se').textContent='Soal nomor '+(bad+1)+' wajib dijawab.';$('#q'+bad).scrollIntoView({behavior:'smooth',block:'center'});return}if(!confirm('Kirim semua jawaban sekarang? Jawaban tidak dapat diubah setelah dikirim.'))return}
  const b=$('#sb');if(b)b.disabled=true;
  try{
   const answers={};(f.questions||[]).forEach(q=>{if(!answerEmpty(q))answers[q.id]=S.ans[q.id]});
-  const rec={name:S.nm||'(tanpa nama)',email:S.em,answers,submittedAt:Date.now(),auto:!!auto};
-  await S.db.collection('responses').doc(S.uid+'_'+f.id).set({formId:f.id,studentUid:S.uid,name:rec.name,email:rec.email,answers:rec.answers,submittedAt:rec.submittedAt,auto:rec.auto},{merge:false});
+  const rec={name:S.nm||'(tanpa nama)',className:S.kelas,answers,submittedAt:Date.now(),auto:!!auto};
+  await S.db.collection('responses').doc(S.uid+'_'+f.id).set({formId:f.id,studentUid:S.uid,name:rec.name,className:rec.className,answers:rec.answers,submittedAt:rec.submittedAt,auto:rec.auto},{merge:false});
   ls.set('done_'+f.id,'1');ls.del(draftKey());ls.del('st_'+f.id);clearInterval(S.tick);S.started=false;
   app.innerHTML='<div class="card top"><h1>'+esc(f.title)+'</h1><p class="ok">✓ Jawaban berhasil dikirim'+(auto?' karena waktu ujian habis':'')+'. Terima kasih.</p><button class="btn" onclick="go(\'\')">Kembali ke beranda</button></div>';
  }catch(e){if(b)b.disabled=false;$('#se').textContent='Gagal mengirim jawaban: '+(e.message||e)+'. Periksa koneksi internet dan izin Firestore.'}
