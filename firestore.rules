@@ -4,8 +4,8 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isSuperAdmin() {
       return signedIn()
-        && request.auth.token.email_verified == true
-        && request.auth.token.email == 'ariful.amar@gmail.com';
+        && request.auth.token.email == 'ariful.amar@gmail.com'
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
     }
     function myProfile() {
       return get(/databases/$(db)/documents/users/$(request.auth.uid)).data;
