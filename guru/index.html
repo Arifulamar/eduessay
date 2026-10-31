@@ -25,7 +25,7 @@ table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;bord
 </head>
 <body>
 
-<header><div class="in"><strong>🎓 Eduessay — Panel Guru</strong><span class="grow"></span><span id="who" class="mut"></span><button id="authBtn" class="btn secondary" onclick="login()">Masuk Guru</button></div></header>
+<header><div class="in"><strong>🎓 Eduessay — Panel Guru</strong><span class="grow"></span><span id="who" class="mut"></span><button id="authBtn" class="btn secondary" onclick="logout()">Masuk Guru</button></div></header>
 <main id="app"><div class="card">Memuat panel guru…</div></main>
 <script>
 const $=s=>document.querySelector(s),app=$('#app');
@@ -64,6 +64,14 @@ function renderLogin(){
 function renderPending(){
  $('#who').textContent=state.user?.email||'';$('#authBtn').textContent='Keluar';
  app.innerHTML='<section class="card hero"><h1>Pendaftaran Guru Diterima</h1><p>Akun <strong>'+esc(state.user?.email||'')+'</strong> sudah terdaftar.</p><span class="pill">Menunggu persetujuan Super Admin</span><p class="mut">Setelah disetujui, Anda dapat mengatur profil, membuat ujian, dan membagikan tautan khusus mata pelajaran.</p></section>';
+}
+async function logout(){
+ try{
+  await state.auth.signOut();
+  location.replace('../');
+ }catch(e){
+  alert('Gagal keluar: '+e.message);
+ }
 }
 async function login(){
  if(state.user){await state.auth.signOut();return}
