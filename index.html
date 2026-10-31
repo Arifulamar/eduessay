@@ -53,7 +53,7 @@ function init(){
  }catch(e){app.innerHTML='<div class="card top">Gagal memuat aplikasi: '+esc(e.message||e)+'</div>'}
 }
 function loadForms(){
- S.db.collection('forms').where('open','==',true).onSnapshot(s=>{S.forms=s.docs.map(d=>({id:d.id,...d.data()}));if(!S.started)render()},e=>{app.innerHTML='<div class="card top"><h2>Gagal memuat ujian</h2><p>'+esc(e.message)+'</p></div>'});
+ S.db.collection('forms').where('open','==',true).onSnapshot(s=>{S.forms=s.docs.map(d=>({id:d.id,...d.data()}));route()},e=>{app.innerHTML='<div class="card top"><h2>Gagal memuat ujian</h2><p>'+esc(e.message)+'</p></div>'});
 }
 function render(){if(S.view==='take')renderTake();else renderHome()}
 function renderHome(){
