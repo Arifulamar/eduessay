@@ -137,7 +137,7 @@ function renderEditor(){
   h+='<section class="qbox"><div class="row"><strong class="grow">Soal '+(i+1)+'</strong><button class="btn danger" onclick="removeQuestion('+i+')">Hapus soal</button></div><textarea id="qt-'+i+'" rows="3" placeholder="Tulis pertanyaan">'+esc(q.text)+'</textarea><div class="row"><select id="qtype-'+i+'" onchange="changeType('+i+',this.value)"><option value="essay_text" '+(q.type==='essay_text'||q.type==='para'?'selected':'')+'>Esai — jawaban teks</option><option value="essay_hand" '+(q.type==='essay_hand'?'selected':'')+'>Esai — tulisan tangan</option><option value="short" '+(q.type==='short'?'selected':'')+'>Jawaban singkat</option><option value="radio" '+(q.type==='radio'?'selected':'')+'>Pilihan ganda</option><option value="check" '+(q.type==='check'?'selected':'')+'>Kotak centang</option><option value="drop" '+(q.type==='drop'?'selected':'')+'>Dropdown</option></select><input id="qp-'+i+'" type="number" min="0" style="max-width:100px" value="'+(+q.points||0)+'" placeholder="Poin"><label><input id="qr-'+i+'" type="checkbox" style="width:auto" '+(q.required?'checked':'')+'> Wajib</label></div>';
   if(['radio','check','drop'].includes(q.type)){h+='<h3>Opsi jawaban (klik tombol kunci untuk memilih jawaban benar)</h3>';q.options.forEach((o,j)=>{const key=d.map[q.id],correct=q.type==='check'?(key||[]).includes(j):key===j;h+='<div class="option"><input id="qo-'+i+'-'+j+'" value="'+esc(o)+'"><button class="btn '+(correct?'':'secondary')+'" onclick="setCorrect('+i+','+j+')">✓ Kunci</button><button class="btn danger" onclick="removeOption('+i+','+j+')">×</button></div>';});h+='<button class="btn secondary" onclick="addOption('+i+')">＋ Opsi</button>'}
   if(q.type==='short')h+='<input id="qkey-'+i+'" placeholder="Kunci jawaban; pisahkan alternatif dengan koma" value="'+esc(d.map[q.id]||'')+'">';
-  h+='</section>';
+  h+='<div class="image-upload"><label for="qimg-'+i+'">Gambar pendukung soal (opsional)</label><input id="qimg-'+i+'" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadQuestionImage('+i+',this)"><small class="mut">PNG, JPG, atau WebP. Gambar akan diperkecil otomatis.</small>'+(q.image?'<div><img src="'+q.image+'" style="display:block;max-width:100%;max-height:220px;object-fit:contain;margin:8px 0;border-radius:8px"><button class="btn danger" onclick="removeQuestionImage('+i+')">Hapus gambar</button></div>':'')+'</div>';h+='</section>';
  });
  h+='<div class="row"><button class="btn secondary" onclick="addQuestion()">＋ Tambah Soal</button><span class="grow"></span><button class="btn secondary" onclick="state.editing=null;render()">Batal</button><button class="btn" onclick="saveForm()">Simpan Ujian</button></div><div id="saveerr" class="err"></div>';
  app.innerHTML=nav()+h;
@@ -146,6 +146,22 @@ function collectEditor(){
  const d=state.editing;d.title=$('#ftitle').value.trim();d.subject=$('#fsubject').value.trim();d.className=$('#fclass').value.trim();d.desc=$('#fdesc').value;d.duration=+$('#fduration').value||0;d.open=$('#fopen').checked;
  d.questions.forEach((q,i)=>{q.text=$('#qt-'+i).value;q.type=$('#qtype-'+i).value;q.points=+$('#qp-'+i).value||0;q.required=$('#qr-'+i).checked;if(['radio','check','drop'].includes(q.type))q.options=q.options.map((_,j)=>$('#qo-'+i+'-'+j)?.value??q.options[j]);if(q.type==='short')d.map[q.id]=$('#qkey-'+i).value});
 }
+async function uploadQuestionImage(i,input){
+ const file=input.files&&input.files[0];if(!file)return;
+ if(!/^image\/(png|jpeg|webp)$/.test(file.type)){alert('Pilih gambar PNG, JPG, atau WebP.');input.value='';return}
+ collectEditor();
+ try{
+  const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)});
+  const img=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=reject;el.src=data});
+  const scale=Math.min(1,1100/img.width,850/img.height),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+  let compressed=canvas.toDataURL('image/jpeg',.68);
+  if(compressed.length>420000)compressed=canvas.toDataURL('image/jpeg',.48);
+  if(compressed.length>480000)throw new Error('Ukuran gambar masih terlalu besar. Pilih gambar yang lebih kecil.');
+  state.editing.questions[i].image=compressed;renderEditor();
+ }catch(e){alert('Gagal memproses gambar: '+e.message);renderEditor()}
+}
+function removeQuestionImage(i){collectEditor();delete state.editing.questions[i].image;renderEditor()}
 function changeType(i,t){collectEditor();const q=state.editing.questions[i];q.type=t;if(!['radio','check','drop'].includes(t)){q.options=[];delete state.editing.map[q.id]}else if(!q.options.length)q.options=['Opsi 1'];renderEditor()}
 function addOption(i){collectEditor();state.editing.questions[i].options.push('Opsi '+(state.editing.questions[i].options.length+1));renderEditor()}
 function removeOption(i,j){collectEditor();const q=state.editing.questions[i];q.options.splice(j,1);delete state.editing.map[q.id];renderEditor()}
