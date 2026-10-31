@@ -179,7 +179,7 @@ function renderResponses(id){
  const rs=state.responses.filter(r=>r.formId===id).sort((a,b)=>(b.submittedAt||0)-(a.submittedAt||0));
  let h='<div class="row" style="margin-bottom:12px"><button class="btn secondary" onclick="state.selected=null;render()">← Kembali</button><span class="grow"></span><button class="btn secondary" onclick="downloadCSV(\''+id+'\')">Unduh CSV</button></div><section class="card hero"><h1>'+esc(f.title)+'</h1><p class="mut">'+rs.length+' tanggapan masuk</p></section>';
  if(!rs.length)h+='<div class="card">Belum ada siswa yang mengirim jawaban.</div>';
- rs.forEach((r,idx)=>{h+='<details class="card" '+(idx===0?'open':'')+'><summary><strong>'+esc(r.name||'Tanpa nama')+'</strong> <span class="mut">· '+esc(r.email||'')+' · '+new Date(r.submittedAt||0).toLocaleString('id-ID')+'</span></summary>';
+ rs.forEach((r,idx)=>{h+='<details class="card" '+(idx===0?'open':'')+'><summary><strong>'+esc(r.name||'Tanpa nama')+'</strong> <span class="mut">· '+esc(r.className||r.email||'')+' · '+new Date(r.submittedAt||0).toLocaleString('id-ID')+'</span></summary>';
   (f.questions||[]).forEach((q,i)=>{const a=r.answers?.[q.id];h+='<div class="answer"><strong>'+(i+1)+'. '+esc(q.text)+'</strong><div style="white-space:pre-wrap;margin-top:7px">'+esc(typeof a==='object'&&a?a.text||'':typeof a==='string'?a:formatChoice(q,a))+'</div>';if(a&&typeof a==='object'&&a.drawing)h+='<div class="mut">Tulisan tangan:</div><img class="handwriting" src="'+a.drawing+'" alt="Jawaban tulisan tangan soal '+(i+1)+'">';h+='</div>'});
   h+='<button class="btn danger" onclick="deleteResponse(\''+r.id+'\')">Hapus tanggapan</button></details>'});
  app.innerHTML=h;
