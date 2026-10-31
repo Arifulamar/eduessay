@@ -1,4 +1,4 @@
-const C='eduessay-v5',A=['./','index.html','firebase-config.js','manifest.webmanifest','icon.svg'];
+const C='eduessay-v6',A=['./','index.html','firebase-config.js','manifest.webmanifest','icon.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{
