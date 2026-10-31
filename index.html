@@ -67,7 +67,7 @@ function readDraft(){let d={};try{d=JSON.parse(ls.get(draftKey())||'{}')}catch(e
 function saveDraft(){ls.set(draftKey(),JSON.stringify({a:S.ans,n:S.nm,e:S.em}))}
 function answerEmpty(q){
  const a=S.ans[q.id];if(a===undefined||a===null||a==='')return true;
- if(q.type==='para'&&typeof a==='object')return !(String(a.text||'').trim()||a.drawing);
+ if((q.type==='para'||q.type==='essay_hand')&&typeof a==='object')return !(String(a.text||'').trim()||a.drawing);
  if(Array.isArray(a))return !a.length;return false;
 }
 function renderTake(){
@@ -78,22 +78,22 @@ function renderTake(){
  let h='<div class="card top"><div class="row"><button class="btn g" onclick="go(\'\')">← Kembali</button><span class="sp"></span>'+(f.duration?'<span class="tag">Sisa waktu: <b class="tm" id="tm">--:--</b></span>':'')+'</div><h1 style="margin-top:12px">'+esc(f.title)+'</h1><p>'+esc(f.desc||'Kerjakan semua soal dengan teliti.')+'</p><p class="mut">* Wajib diisi. Untuk soal esai, Anda dapat mengetik, menulis tangan, atau menggunakan keduanya.</p></div>';
  h+='<div class="card"><h2>Identitas Siswa *</h2><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="identityChanged()"><input id="em" placeholder="NIS / Email" value="'+esc(S.em)+'" oninput="identityChanged()"></div>';
  (f.questions||[]).forEach((q,i)=>{const a=S.ans[q.id];h+='<div class="card question" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+'</h2><div class="mut">'+q.points+' poin</div>';
-  if(q.type==='para'){
+  if(q.type==='para'||q.type==='essay_text'){
    const val=typeof a==='object'&&a?a.text||'':typeof a==='string'?a:'';
-   h+='<label class="mut">Jawaban dengan ketikan</label><textarea rows="5" placeholder="Ketik jawaban di sini (boleh dikosongkan jika menulis tangan)..." oninput="setEssayText(\''+q.id+'\',this.value)">'+esc(val)+'</textarea>';
-   h+='<label class="mut">Jawaban dengan tulisan tangan</label><div class="canvas-wrap"><div class="draw-tools"><button class="btn g active" id="pen-'+q.id+'" onclick="setTool(\''+q.id+'\',\'pen\')">✎ Pena</button><button class="btn g" id="erase-'+q.id+'" onclick="setTool(\''+q.id+'\',\'erase\')">Penghapus</button><button class="btn g" onclick="undoStroke(\''+q.id+'\')">↶ Undo</button><button class="btn r" onclick="clearCanvas(\''+q.id+'\')">Hapus semua</button><label class="mut" style="display:flex;align-items:center;gap:5px">Ukuran <select style="width:auto;margin:0;padding:4px" onchange="setPenSize(\''+q.id+'\',this.value)"><option value="3">Tipis</option><option value="5" selected>Normal</option><option value="9">Tebal</option></select></label></div><canvas class="answer-canvas" id="cv-'+q.id+'" width="1000" height="400" aria-label="Kanvas tulisan tangan"></canvas></div><p class="hint">Gunakan jari, stylus, atau mouse. Goresan tersimpan otomatis di perangkat ini.</p>';
+   h+='<label class="mut">Jawaban esai (teks)</label><textarea rows="5" placeholder="Ketik jawaban di sini..." oninput="setEssayText(\''+q.id+'\',this.value)">'+esc(val)+'</textarea>';
+   }else if(q.type==='essay_hand'){h+='<label class="mut">Jawaban esai (tulisan tangan)</label><div class="canvas-wrap"><div class="draw-tools"><button class="btn g active" id="pen-'+q.id+'" onclick="setTool(\''+q.id+'\',\'pen\')">✎ Pena</button><button class="btn g" id="erase-'+q.id+'" onclick="setTool(\''+q.id+'\',\'erase\')">Penghapus</button><button class="btn g" onclick="undoStroke(\''+q.id+'\')">↶ Undo</button><button class="btn r" onclick="clearCanvas(\''+q.id+'\')">Hapus semua</button><label class="mut" style="display:flex;align-items:center;gap:5px">Ukuran <select style="width:auto;margin:0;padding:4px" onchange="setPenSize(\''+q.id+'\',this.value)"><option value="3">Tipis</option><option value="5" selected>Normal</option><option value="9">Tebal</option></select></label></div><canvas class="answer-canvas" id="cv-'+q.id+'" width="1000" height="400" aria-label="Kanvas tulisan tangan"></canvas></div><p class="hint">Gunakan jari, stylus, atau mouse. Goresan tersimpan otomatis di perangkat ini.</p>';
   }else if(q.type==='short')h+='<input value="'+esc(a||'')+'" placeholder="Jawaban singkat" oninput="setAnswer(\''+q.id+'\',this.value)">';
   else if(q.type==='drop')h+='<select onchange="setAnswer(\''+q.id+'\',this.value===\'\'?undefined:+this.value)"><option value="">Pilih jawaban…</option>'+(q.options||[]).map((o,j)=>'<option value="'+j+'"'+(a===j?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
   else (q.options||[]).forEach((o,j)=>{const c=q.type==='check'?(a||[]).includes(j):a===j;h+='<label style="display:block;padding:7px 0"><input style="width:auto" type="'+(q.type==='check'?'checkbox':'radio')+'" name="r'+i+'" '+(c?'checked':'')+' onchange="choiceAnswer(\''+q.id+'\','+j+',this.checked,\''+q.type+'\')"> '+esc(o)+'</label>'});
   h+='</div>';
  });
  h+='<div class="card"><button class="btn" id="sb" onclick="submitExam(false)">Kirim Jawaban</button><div id="se" class="err"></div><p class="hint">Pastikan semua jawaban sudah benar sebelum dikirim.</p></div>';app.innerHTML=h;
- (f.questions||[]).filter(q=>q.type==='para').forEach(q=>initCanvas(q.id,S.ans[q.id]?.drawing));
+ (f.questions||[]).filter(q=>q.type==='essay_hand'||q.type==='para').forEach(q=>initCanvas(q.id,S.ans[q.id]?.drawing));
  if(f.duration){const k='st_'+f.id;let st=+ls.get(k)||0;if(!st){st=Date.now();ls.set(k,st)}const end=st+f.duration*60000;const tick=()=>{const r=Math.max(0,end-Date.now()),el=$('#tm');if(el)el.textContent=String(Math.floor(r/60000)).padStart(2,'0')+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');if(r<=0){clearInterval(S.tick);submitExam(true)}};tick();S.tick=setInterval(tick,1000)}
 }
 function identityChanged(){S.nm=$('#nm').value;S.em=$('#em').value;saveDraft()}
 function setAnswer(id,v){S.ans[id]=v;saveDraft()}
-function setEssayText(id,v){const a=S.ans[id]&&typeof S.ans[id]==='object'?S.ans[id]:{text:typeof S.ans[id]==='string'?S.ans[id]:''};a.text=v;S.ans[id]=a;saveDraft()}
+function setEssayText(id,v){S.ans[id]=v;saveDraft()}
 function choiceAnswer(id,j,on,type){if(type==='check'){const a=new Set(S.ans[id]||[]);on?a.add(j):a.delete(j);S.ans[id]=[...a].sort((x,y)=>x-y)}else S.ans[id]=j;saveDraft()}
 function initCanvas(id,data){
  const c=$('#cv-'+id);if(!c)return;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.lineCap='round';ctx.lineJoin='round';S.strokes[id]=[];
@@ -105,7 +105,7 @@ function initCanvas(id,data){
  const end=()=>{if(!drawing)return;drawing=false;ctx.closePath();persistCanvas(id,c)};
  c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);c.addEventListener('pointerleave',e=>{if(e.buttons===0)end()});
 }
-function persistCanvas(id,c){const a=S.ans[id]&&typeof S.ans[id]==='object'?S.ans[id]:{text:typeof S.ans[id]==='string'?S.ans[id]:''};a.drawing=c.toDataURL('image/jpeg',.68);S.ans[id]=a;saveDraft()}
+function persistCanvas(id,c){S.ans[id]={drawing:c.toDataURL('image/jpeg',.68)};saveDraft()}
 function setTool(id,tool){S.tools[id]=S.tools[id]||{size:5};S.tools[id].mode=tool;S.tools[id]=tool;$('#pen-'+id)?.classList.toggle('active',tool==='pen');$('#erase-'+id)?.classList.toggle('active',tool==='erase')}
 function setPenSize(id,v){S.tools[id]={mode:'pen',size:+v||5}}
 function undoStroke(id){const c=$('#cv-'+id),ctx=c?.getContext('2d'),stack=S.strokes[id];if(!c||!stack?.length)return;ctx.putImageData(stack.pop(),0,0);persistCanvas(id,c)}
