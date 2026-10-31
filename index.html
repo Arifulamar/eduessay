@@ -77,7 +77,7 @@ function renderTake(){
  readDraft();S.started=true;
  let h='<div class="card top"><div class="row"><button class="btn g" onclick="go(\'\')">← Kembali</button><span class="sp"></span>'+(f.duration?'<span class="tag">Sisa waktu: <b class="tm" id="tm">--:--</b></span>':'')+'</div><h1 style="margin-top:12px">'+esc(f.title)+'</h1><p>'+esc(f.desc||'Kerjakan semua soal dengan teliti.')+'</p><p class="mut">* Wajib diisi. Untuk soal esai, Anda dapat mengetik, menulis tangan, atau menggunakan keduanya.</p></div>';
  h+='<div class="card"><h2>Identitas Siswa *</h2><input id="nm" placeholder="Nama lengkap" value="'+esc(S.nm)+'" oninput="identityChanged()"><input id="em" placeholder="NIS / Email" value="'+esc(S.em)+'" oninput="identityChanged()"></div>';
- (f.questions||[]).forEach((q,i)=>{const a=S.ans[q.id];h+='<div class="card question" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+'</h2><div class="mut">'+q.points+' poin</div>';
+ (f.questions||[]).forEach((q,i)=>{const a=S.ans[q.id];h+='<div class="card question" id="q'+i+'"><h2>'+(i+1)+'. '+esc(q.text)+(q.required?' <span style="color:var(--bad)">*</span>':'')+'</h2>'+(q.image?'<img class="question-image" src="'+q.image+'" alt="Gambar soal '+(i+1)+'" style="display:block;max-width:100%;max-height:520px;object-fit:contain;margin:12px 0;border-radius:8px">':'')+'<div class="mut">'+q.points+' poin</div>';
   if(q.type==='para'||q.type==='essay_text'){
    const val=typeof a==='object'&&a?a.text||'':typeof a==='string'?a:'';
    h+='<label class="mut">Jawaban esai (teks)</label><textarea rows="5" placeholder="Ketik jawaban di sini..." oninput="setEssayText(\''+q.id+'\',this.value)">'+esc(val)+'</textarea>';
